@@ -3,739 +3,1878 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escudo Yuma | Sistema Antifraude en Tiempo Real - Yuma Pay S.A.</title>
+  <title>Yuma Pay | Billetera Digital & Sistema Antifraude Escudo Yuma</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     :root {
-      --bg: #0b0f19;
-      --card: #111827;
-      --border: #1f2937;
-      --text: #f9fafb;
-      --muted: #9ca3af;
-      --primary: #3b82f6;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --purple: #8b5cf6;
+      --primary-navy: #0A192F;
+      --primary-blue: #1D4ED8;
+      --accent-blue: #2563EB;
+      --accent-cyan: #0284C7;
+      --emerald-success: #10B981;
+      --amber-warning: #F59E0B;
+      --rose-danger: #EF4444;
+      --surface-light: #F8FAFC;
+      --card-light: #FFFFFF;
+      --border-light: #E2E8F0;
     }
+
     body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #F1F5F9;
+      color: #0F172A;
+      overflow-x: hidden;
     }
-    .badge-aprobar { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
-    .badge-desafiar { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
-    .badge-retener { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
-    .badge-rechazar { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
-    .progress-bar { transition: width 0.4s ease; }
+
+    /* Estilos de badges de decisión y tramo */
+    .badge-aprobar { background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-desafiar { background: rgba(245, 158, 11, 0.12); color: #D97706; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-retener { background: rgba(249, 115, 22, 0.12); color: #EA580C; border: 1px solid rgba(249, 115, 22, 0.3); }
+    .badge-rechazar { background: rgba(239, 68, 68, 0.12); color: #DC2626; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .dark-mode-admin .badge-aprobar { background: rgba(16, 185, 129, 0.18); color: #34D399; border-color: rgba(16, 185, 129, 0.4); }
+    .dark-mode-admin .badge-desafiar { background: rgba(245, 158, 11, 0.18); color: #FBBF24; border-color: rgba(245, 158, 11, 0.4); }
+    .dark-mode-admin .badge-retener { background: rgba(249, 115, 22, 0.18); color: #FB923C; border-color: rgba(249, 115, 22, 0.4); }
+    .dark-mode-admin .badge-rechazar { background: rgba(239, 68, 68, 0.18); color: #F87171; border-color: rgba(239, 68, 68, 0.4); }
+
+    .progress-bar { transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
     .pulse-dot {
-      animation: pulseAnimation 2s infinite;
+      animation: pulseLive 2s infinite;
     }
-    @keyframes pulseAnimation {
+    @keyframes pulseLive {
       0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Tarjeta Débito Virtual 3D Glassmorphism */
+    .virtual-card {
+      background: linear-gradient(135deg, #0A192F 0%, #1E3A8A 50%, #0F172A 100%);
+      box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.3), 0 8px 10px -6px rgba(15, 23, 42, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .virtual-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -30%;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
     }
   </style>
 </head>
-<body class="min-h-screen text-slate-100 antialiased flex flex-col">
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-800 antialiased">
 
-  <!-- Header Superior -->
-  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-xl shadow-lg shadow-blue-500/20 text-white">
-          🛡️
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="font-bold text-lg text-white tracking-tight">Escudo Yuma</h1>
-            <span class="px-2 py-0.5 text-xs rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">Motor en Tiempo Real</span>
-            <span class="flex items-center gap-1.5 text-xs text-emerald-400 font-medium ml-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span> Online (< 245 ms SLA)
-            </span>
+  <!-- ========================================================================= -->
+  <!-- BARRA INSTITUCIONAL SUPERIOR & SELECTOR DE PERFIL -->
+  <!-- ========================================================================= -->
+  <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        
+        <!-- Identidad Institucional Yuma Pay -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center font-black text-white text-lg shadow-lg shadow-blue-600/30">
+              Y
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-extrabold text-lg tracking-tight text-white">Yuma Pay</span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">SEDPE</span>
+                <span class="hidden sm:inline-flex items-center gap-1.5 text-xs text-emerald-400 font-medium ml-1">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span> Vigilada SuperFinanciera
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-medium">Billetera Digital & Ecosistema de Pagos de Bajo Monto en Colombia</p>
+            </div>
           </div>
-          <p class="text-xs text-slate-400">Yuma Pay S.A. • SEDPE Vigilada Superintendencia Financiera de Colombia</p>
+
+          <!-- Selector de Modo para pantallas móviles -->
+          <div class="md:hidden">
+            <select id="mobile-role-select" onchange="switchRole(this.value)" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none">
+              <option value="user">👤 Perfil Usuario</option>
+              <option value="admin">🛡️ Perfil Administrador (Escudo)</option>
+            </select>
+          </div>
         </div>
+
+        <!-- Role Switcher & User Profile Pill (Desktop) -->
+        <div class="flex items-center justify-between md:justify-end gap-3 pt-1 md:pt-0 border-t border-slate-800 md:border-0">
+          
+          <!-- Botones de Conmutación de Perfiles -->
+          <div class="bg-slate-950/80 p-1 rounded-xl border border-slate-800 flex items-center gap-1 shadow-inner">
+            <button id="role-btn-user" onclick="switchRole('user')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 bg-blue-600 text-white shadow-sm">
+              <span>👤</span>
+              <span>Billetera Usuario</span>
+            </button>
+            <button id="role-btn-admin" onclick="switchRole('admin')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-2">
+              <span>🛡️</span>
+              <span>Administrador (Escudo)</span>
+              <span id="queue-badge-count-top" class="bg-red-500/30 text-red-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">4</span>
+            </button>
+          </div>
+
+          <!-- Perfil del Operador / Usuario Actual -->
+          <div class="flex items-center gap-2.5 pl-2 border-l border-slate-800">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 border border-slate-600 flex items-center justify-center text-xs font-bold text-slate-200">
+              <span id="header-avatar-initials">JC</span>
+            </div>
+            <div class="hidden lg:block text-left text-xs leading-tight">
+              <div class="font-bold text-slate-200" id="header-user-name">Juan Camilo R.</div>
+              <div class="text-[10px] text-emerald-400" id="header-user-status">Cliente Verificado • Fogafín</div>
+            </div>
+          </div>
+
+        </div>
+
       </div>
-
-      <!-- Quick KPI Counters -->
-      <div class="flex items-center gap-4 text-xs">
-        <div class="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60">
-          <div class="text-slate-400">Falsos Positivos</div>
-          <div class="font-bold text-emerald-400 text-sm flex items-center gap-1">
-            <span id="kpi-fp">54.2%</span>
-            <span class="text-[10px] text-slate-400 font-normal">(Antes 89.0%)</span>
-          </div>
-        </div>
-        <div class="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60">
-          <div class="text-slate-400">Detección Fraude</div>
-          <div class="font-bold text-blue-400 text-sm flex items-center gap-1">
-            <span id="kpi-det">86.8%</span>
-            <span class="text-[10px] text-slate-400 font-normal">(Antes 62.6%)</span>
-          </div>
-        </div>
-        <div class="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60">
-          <div class="text-slate-400">Latencia P99</div>
-          <div class="font-bold text-purple-400 text-sm flex items-center gap-1">
-            <span id="kpi-lat">142 ms</span>
-            <span class="text-[10px] text-emerald-400 font-normal">SLA &lt; 300ms</span>
-          </div>
-        </div>
-        <div class="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60 hidden md:block">
-          <div class="text-slate-400">Ahorro Mensual Est.</div>
-          <div class="font-bold text-emerald-400 text-sm" id="kpi-ahorro">COP $287.5M</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex gap-1 overflow-x-auto border-t border-slate-800/60 pt-1 text-sm font-medium">
-      <button onclick="switchTab('sandbox')" id="tab-btn-sandbox" class="px-4 py-2 text-blue-400 border-b-2 border-blue-500 flex items-center gap-2">
-        <span>⚡</span> Simulador & Sandbox Pre-Autorización
-      </button>
-      <button onclick="switchTab('soc')" id="tab-btn-soc" class="px-4 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-2">
-        <span>🚨</span> Consola Analista SOC (<span id="queue-badge-count" class="bg-red-500/20 text-red-400 px-1.5 py-0.2 rounded-full text-xs">4</span>)
-      </button>
-      <button onclick="switchTab('engine')" id="tab-btn-engine" class="px-4 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-2">
-        <span>⚙️</span> Motor 3 Capas & Grafo de Red
-      </button>
-      <button onclick="switchTab('feedback')" id="tab-btn-feedback" class="px-4 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-2">
-        <span>🔄</span> Bucle Cerrado & Reentrenamiento
-      </button>
-      <button onclick="switchTab('compliance')" id="tab-btn-compliance" class="px-4 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-2">
-        <span>⚖️</span> No Discriminación & SARLAFT
-      </button>
     </div>
   </header>
 
-  <!-- Contenedor Principal -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
-
-    <!-- TAB 1: SANDBOX & SIMULADOR DE TRANSACCIONES -->
-    <section id="tab-sandbox" class="space-y-6">
-      
-      <!-- Banner de Principio Rector -->
-      <div class="p-4 rounded-xl bg-gradient-to-r from-blue-950/40 via-indigo-950/30 to-slate-900 border border-blue-800/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div class="flex items-start gap-3">
-          <div class="text-2xl mt-0.5">💡</div>
-          <div>
-            <h3 class="font-semibold text-blue-300 text-sm">Principio Rector de Escudo Yuma</h3>
-            <p class="text-xs text-slate-300 mt-0.5">
-              Califica en menos de <strong>300 ms antes de autorizar</strong> la transacción.
-              Prioriza y explica para el analista; <strong>ningún bloqueo definitivo</strong> es ejecutado por el sistema de forma automática.
-            </p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="ejecutarPruebaCarga()" id="btn-stress-test" class="px-3.5 py-2 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-2 transition">
-            <span>🚀</span> Test de Carga (150 tx/seg)
+  <!-- ========================================================================= -->
+  <!-- PERFIL A: BILLETERA DIGITAL DEL USUARIO (YUMA PAY CLIENTES) -->
+  <!-- ========================================================================= -->
+  <div id="view-user" class="flex-1 flex flex-col">
+    
+    <!-- Sub-Navbar de Usuario -->
+    <div class="bg-white border-b border-slate-200 sticky top-[61px] z-40 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+        
+        <nav class="flex gap-1 overflow-x-auto py-2 text-xs font-medium scrollbar-none" id="user-nav">
+          <button onclick="switchUserTab('home')" id="user-tab-btn-home" class="px-3.5 py-2 rounded-lg text-blue-700 bg-blue-50 font-bold flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>🏠</span> Inicio & Resumen
           </button>
+          <button onclick="switchUserTab('transfer')" id="user-tab-btn-transfer" class="px-3.5 py-2 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-slate-100 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>💸</span> Transferir (Transfiya)
+          </button>
+          <button onclick="switchUserTab('qr')" id="user-tab-btn-qr" class="px-3.5 py-2 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-slate-100 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>📱</span> Pagos con QR
+          </button>
+          <button onclick="switchUserTab('recharge')" id="user-tab-btn-recharge" class="px-3.5 py-2 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-slate-100 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>⚡</span> Recargar Saldo
+          </button>
+          <button onclick="switchUserTab('bills')" id="user-tab-btn-bills" class="px-3.5 py-2 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-slate-100 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>🧾</span> Pago de Servicios
+          </button>
+          <button onclick="switchUserTab('card')" id="user-tab-btn-card" class="px-3.5 py-2 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-slate-100 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>💳</span> Tarjeta Débito Virtual
+          </button>
+          <button onclick="switchUserTab('history')" id="user-tab-btn-history" class="px-3.5 py-2 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-slate-100 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>📜</span> Historial Completo
+          </button>
+          <button onclick="switchUserTab('security')" id="user-tab-btn-security" class="px-3.5 py-2 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-slate-100 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>⚙️</span> Mi Perfil & Seguridad
+          </button>
+        </nav>
+
+        <div class="hidden md:flex items-center gap-2 pl-3 border-l border-slate-200">
+          <span class="text-[11px] text-slate-500">Límite mensual SEDPE:</span>
+          <span class="text-xs font-bold text-slate-800">$9.260.000 COP</span>
         </div>
+
       </div>
+    </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Contenido de las Secciones del Usuario -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
 
-        <!-- Columna Izquierda: Generador y Parámetros -->
-        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-          <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-white text-base flex items-center gap-2">
-              <span>💳</span> Inyección de Transacción
-            </h2>
-            <span class="text-xs text-slate-400">Sandbox API REST</span>
+      <!-- ========================================== -->
+      <!-- 1. INICIO & RESUMEN FINANCIERO -->
+      <!-- ========================================== -->
+      <section id="user-view-home" class="space-y-6">
+        
+        <!-- Saludo y Tarjeta de Saldo Disponible -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Balance Principal -->
+          <div class="lg:col-span-7 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-950 rounded-2xl p-6 text-white shadow-xl shadow-blue-950/15 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+            <div class="absolute -right-8 -top-8 w-48 h-48 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex items-start justify-between relative z-10">
+              <div>
+                <span class="text-xs font-medium text-blue-200 tracking-wide uppercase">Depósito de Bajo Monto SEDPE</span>
+                <h2 class="text-xl sm:text-2xl font-black mt-0.5 text-white">¡Hola, Juan Camilo! 👋</h2>
+                <p class="text-xs text-blue-200/80">Cuenta No. <span class="font-mono font-semibold">312-883-1049</span> • Llave Transfiya activa</p>
+              </div>
+              <button onclick="toggleBalanceVisibility()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition text-blue-200 hover:text-white" title="Mostrar/Ocultar Saldo">
+                <span id="balance-eye-icon" class="text-sm">👁️</span>
+              </button>
+            </div>
+
+            <!-- Cifra de Saldo -->
+            <div class="my-4 relative z-10">
+              <span class="text-xs text-blue-200/90 font-medium">Saldo Disponible</span>
+              <div class="flex items-baseline gap-2 mt-0.5">
+                <span class="text-3xl sm:text-4xl font-black tracking-tight" id="user-balance-display">$ 3.840.500</span>
+                <span class="text-xs font-semibold text-blue-200">COP</span>
+              </div>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="inline-flex items-center gap-1 text-[11px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-medium border border-emerald-400/30">
+                  <span>🛡️</span> Seguro Fogafín hasta $50M
+                </span>
+                <span class="text-[11px] text-blue-200/80">• Exento de 4x1000</span>
+              </div>
+            </div>
+
+            <!-- Accesos Rápidos Inmediatos -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-white/15 relative z-10">
+              <button onclick="switchUserTab('transfer')" class="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 transition font-semibold text-xs flex items-center justify-center gap-1.5 text-white">
+                <span>↗️</span> Enviar
+              </button>
+              <button onclick="switchUserTab('recharge')" class="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 transition font-semibold text-xs flex items-center justify-center gap-1.5 text-white">
+                <span>↙️</span> Recargar
+              </button>
+              <button onclick="switchUserTab('qr')" class="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 transition font-semibold text-xs flex items-center justify-center gap-1.5 text-white">
+                <span>📷</span> Pagar QR
+              </button>
+              <button onclick="switchUserTab('card')" class="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 transition font-semibold text-xs flex items-center justify-center gap-1.5 text-white">
+                <span>💳</span> Mi Tarjeta
+              </button>
+            </div>
           </div>
 
-          <!-- Selector de Escenarios del Reto -->
-          <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Cargar Caso de Estudio Frecuente:</label>
-            <select id="scenario-selector" onchange="cargarEscenario(this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-              <option value="ato">1. Toma de Cuenta (Phishing / ATO) [Cambio clave + Disp. nuevo]</option>
-              <option value="sim">2. SIM Swapping [Cambio SIM 48h + Madrugada]</option>
-              <option value="mule">3. Red de Cuenta Mula [Fan-in crítico &gt; 5 orígenes]</option>
-              <option value="social">4. Ingeniería Social [Desvío extremo sin cambio de aparato]</option>
-              <option value="qr">5. Engaño con QR / Comercio Nuevo [Monto redondo]</option>
-              <option value="legit">6. Transacción Habitual Legítima [Bajo riesgo]</option>
-            </select>
+          <!-- Límite SEDPE & Resumen Mensual -->
+          <div class="lg:col-span-5 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                  <span>📊</span> Límite Transaccional Exento
+                </h3>
+                <span class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Regulación SFC</span>
+              </div>
+              <p class="text-xs text-slate-500">
+                Tu cuenta SEDPE goza de exención del Gravamen a Movimientos Financieros (4x1000) hasta por <strong>$9.260.000 COP</strong> mensuales.
+              </p>
+
+              <!-- Barra de Progreso de Límite -->
+              <div class="mt-3 space-y-1.5">
+                <div class="flex justify-between text-xs font-semibold">
+                  <span class="text-slate-600">Consumido este mes</span>
+                  <span class="text-blue-700 font-mono" id="user-limit-text">$3.840.500 / $9.260.000 (41%)</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
+                  <div class="bg-gradient-to-r from-blue-600 to-indigo-500 h-full rounded-full" style="width: 41%;"></div>
+                </div>
+                <span class="text-[10px] text-slate-400 block text-right">Te quedan $5.419.500 libres de 4x1000</span>
+              </div>
+            </div>
+
+            <!-- Banner Informativo de Protección Escudo Yuma -->
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-700 flex items-center justify-center text-base flex-shrink-0">
+                🛡️
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-slate-800">Protección Activa con Escudo Yuma</h4>
+                <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                  Tus movimientos se evalúan en menos de <strong>245 ms</strong> con inteligencia artificial y grafo de red. Seguridad sin demoras ni bloqueos injustificados.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <form id="tx-form" onsubmit="event.preventDefault(); calificarTransaccion();" class="space-y-3">
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="text-[11px] text-slate-400">ID Transacción</label>
-                <input type="text" id="tx_id" value="TX-202611-9874" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
-              </div>
-              <div>
-                <label class="text-[11px] text-slate-400">Monto (COP)</label>
-                <input type="number" id="tx_monto" value="950000" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="text-[11px] text-slate-400">Cuenta Origen</label>
-                <input type="text" id="tx_origen" value="CTA-88310" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white">
-              </div>
-              <div>
-                <label class="text-[11px] text-slate-400">Cuenta Destino</label>
-                <input type="text" id="tx_destino" value="CTA-99231" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="text-[11px] text-slate-400">Tipo Operación</label>
-                <select id="tx_tipo" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                  <option value="TRANSFERENCIA_INMEDIATA">Transferencia Inmediata</option>
-                  <option value="PAGO_QR">Pago con QR</option>
-                  <option value="RETIRO_CORRESPONSAL">Retiro Corresponsal</option>
-                  <option value="PAGO_SERVICIOS">Pago de Servicios</option>
-                </select>
-              </div>
-              <div>
-                <label class="text-[11px] text-slate-400">Canal</label>
-                <select id="tx_canal" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                  <option value="APP_MOVIL">App Móvil</option>
-                  <option value="CORRESPONSAL">Corresponsal</option>
-                  <option value="CAJERO">Cajero</option>
-                  <option value="WEB">Web</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="border-t border-slate-800 pt-3 space-y-2">
-              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Señales de Contexto y Comportamiento</span>
-              
-              <div class="grid grid-cols-2 gap-2 text-xs">
-                <label class="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg cursor-pointer">
-                  <input type="checkbox" id="tx_disp_nuevo" checked class="rounded border-slate-700 text-blue-600">
-                  <span class="text-slate-300">Dispositivo nuevo</span>
-                </label>
-                <label class="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg cursor-pointer">
-                  <input type="checkbox" id="tx_cambio_clave" checked class="rounded border-slate-700 text-blue-600">
-                  <span class="text-slate-300">Cambio clave &lt;24h</span>
-                </label>
-                <label class="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg cursor-pointer">
-                  <input type="checkbox" id="tx_cambio_sim" class="rounded border-slate-700 text-blue-600">
-                  <span class="text-slate-300">Cambio SIM &lt;48h</span>
-                </label>
-                <label class="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg cursor-pointer">
-                  <input type="checkbox" id="tx_madrugada" class="rounded border-slate-700 text-blue-600">
-                  <span class="text-slate-300">Madrugada (00-05h)</span>
-                </label>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3 pt-1">
-                <div>
-                  <label class="text-[11px] text-slate-400">Time-to-Cash (min)</label>
-                  <input type="number" id="tx_ttc" value="3.2" step="0.5" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                </div>
-                <div>
-                  <label class="text-[11px] text-slate-400">Patrón P95 (90d COP)</label>
-                  <input type="number" id="tx_p95" value="150000" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                </div>
-              </div>
-            </div>
-
-            <button type="submit" id="btn-evaluar" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-sm text-white shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2 mt-4">
-              <span>⚡</span> Calificar Riesgo (Pre-Autorización)
-            </button>
-          </form>
         </div>
 
-        <!-- Columna Derecha: Resultado del Scoring & Latencia -->
-        <div class="lg:col-span-7 space-y-4">
-          
-          <!-- Veredicto Principal -->
-          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden" id="verdict-container">
-            <div class="flex items-start justify-between">
-              <div>
-                <span class="text-xs uppercase tracking-wider font-semibold text-slate-400">Veredicto del Servicio Antifraude</span>
-                <div class="flex items-center gap-3 mt-1.5">
-                  <span id="decision-badge" class="px-4 py-1.5 rounded-lg text-lg font-bold uppercase tracking-wide badge-retener">
-                    RETENER
-                  </span>
-                  <div class="text-sm">
-                    <span class="text-slate-400">Tramo de Riesgo:</span>
-                    <span id="tramo-text" class="font-bold text-orange-400 ml-1">ALTO (Score: 720/1000)</span>
-                  </div>
+        <!-- Tarjetas de Acciones Rápidas del Ecosistema -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Servicios y Operaciones Frecuentes</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+            <button onclick="switchUserTab('transfer')" class="p-4 rounded-xl bg-white border border-slate-200/80 hover:border-blue-500/50 hover:shadow-md transition text-center group">
+              <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition flex items-center justify-center mx-auto text-xl mb-2">
+                ⚡
+              </div>
+              <span class="text-xs font-bold text-slate-700 block">Transferir</span>
+              <span class="text-[10px] text-slate-400">Por Celular o CC</span>
+            </button>
+
+            <button onclick="switchUserTab('qr')" class="p-4 rounded-xl bg-white border border-slate-200/80 hover:border-blue-500/50 hover:shadow-md transition text-center group">
+              <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition flex items-center justify-center mx-auto text-xl mb-2">
+                📷
+              </div>
+              <span class="text-xs font-bold text-slate-700 block">Pagar con QR</span>
+              <span class="text-[10px] text-slate-400">En comercios aliados</span>
+            </button>
+
+            <button onclick="switchUserTab('recharge')" class="p-4 rounded-xl bg-white border border-slate-200/80 hover:border-blue-500/50 hover:shadow-md transition text-center group">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition flex items-center justify-center mx-auto text-xl mb-2">
+                🏦
+              </div>
+              <span class="text-xs font-bold text-slate-700 block">Recargar PSE</span>
+              <span class="text-[10px] text-slate-400">Desde cualquier banco</span>
+            </button>
+
+            <button onclick="switchUserTab('bills')" class="p-4 rounded-xl bg-white border border-slate-200/80 hover:border-blue-500/50 hover:shadow-md transition text-center group">
+              <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition flex items-center justify-center mx-auto text-xl mb-2">
+                🧾
+              </div>
+              <span class="text-xs font-bold text-slate-700 block">Pagar Servicios</span>
+              <span class="text-[10px] text-slate-400">Luz, agua, internet</span>
+            </button>
+
+            <button onclick="abrirModalRetiroCorresponsal()" class="p-4 rounded-xl bg-white border border-slate-200/80 hover:border-blue-500/50 hover:shadow-md transition text-center group">
+              <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition flex items-center justify-center mx-auto text-xl mb-2">
+                🏪
+              </div>
+              <span class="text-xs font-bold text-slate-700 block">Retiro Efectivo</span>
+              <span class="text-[10px] text-slate-400">En corresponsales</span>
+            </button>
+
+            <button onclick="switchUserTab('card')" class="p-4 rounded-xl bg-white border border-slate-200/80 hover:border-blue-500/50 hover:shadow-md transition text-center group">
+              <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition flex items-center justify-center mx-auto text-xl mb-2">
+                💳
+              </div>
+              <span class="text-xs font-bold text-slate-700 block">Tarjeta Virtual</span>
+              <span class="text-[10px] text-slate-400">Compras online 100%</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Movimientos Recientes del Usuario -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">Movimientos Recientes</h3>
+              <p class="text-xs text-slate-500">Últimas transacciones registradas en tu cuenta</p>
+            </div>
+            <button onclick="switchUserTab('history')" class="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline">
+              Ver todo el historial →
+            </button>
+          </div>
+
+          <div class="divide-y divide-slate-100" id="user-recent-txs-container">
+            <!-- Transacción 1 -->
+            <div class="py-3 flex items-center justify-between hover:bg-slate-50/70 px-2 rounded-xl transition cursor-pointer" onclick="verComprobante('TX-8921', 'Transferencia Saliente', 'Mateo Gómez (Transfiya)', '- $120.000', '19 Nov 2026, 14:30', 'Aprobada')">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg font-bold">
+                  ↗️
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-slate-800">Transferencia a Mateo Gómez</div>
+                  <div class="text-[11px] text-slate-500">Llave Transfiya 310-456-7890 • Ref: TX-8921</div>
                 </div>
               </div>
               <div class="text-right">
-                <span class="text-xs text-slate-400">SLA Pre-Autorización</span>
-                <div class="text-xl font-bold font-mono text-emerald-400 flex items-center justify-end gap-1" id="total-latency-text">
-                  <span>46.8 ms</span>
-                  <span class="text-xs text-slate-400 font-normal">/ 300 ms</span>
+                <div class="text-xs font-bold text-slate-900 font-mono">- $120.000 COP</div>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Exitosa</span>
+              </div>
+            </div>
+
+            <!-- Transacción 2 -->
+            <div class="py-3 flex items-center justify-between hover:bg-slate-50/70 px-2 rounded-xl transition cursor-pointer" onclick="verComprobante('TX-8920', 'Pago con QR', 'Restaurante Don Jorge', '- $45.000', '19 Nov 2026, 12:45', 'Aprobada')">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-bold">
+                  📷
                 </div>
-                <span class="text-[10px] text-emerald-400 font-medium">✓ Cumple SLA Estricto</span>
-              </div>
-            </div>
-
-            <!-- Barra de Riesgo Visual -->
-            <div class="mt-4">
-              <div class="flex justify-between text-xs text-slate-400 mb-1">
-                <span>0 (Aprobar)</span>
-                <span>350 (Desafiar)</span>
-                <span>550 (Retener)</span>
-                <span>750 (Rechazar)</span>
-                <span>1000</span>
-              </div>
-              <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex relative">
-                <div class="h-full bg-emerald-500/30 w-[35%]"></div>
-                <div class="h-full bg-amber-500/30 w-[20%]"></div>
-                <div class="h-full bg-orange-500/30 w-[20%]"></div>
-                <div class="h-full bg-red-500/30 w-[25%]"></div>
-                <!-- Indicador de aguja -->
-                <div id="risk-needle" class="absolute top-0 bottom-0 w-1 bg-white shadow-lg transition-all duration-500" style="left: 72%;"></div>
-              </div>
-            </div>
-
-            <!-- Mensaje al Cliente -->
-            <div class="mt-4 p-3 rounded-lg bg-slate-800/70 border border-slate-700/60 text-xs">
-              <span class="text-slate-400 font-medium">Mensaje para el Cliente (Sin fricción injustificada / Foco confianza):</span>
-              <p id="client-message" class="text-slate-200 mt-1 font-medium">
-                "Su operación se encuentra en proceso de validación preventiva por seguridad. Será atendida en breve sin costo adicional."
-              </p>
-            </div>
-          </div>
-
-          <!-- Desglose por Capas & TreeSHAP -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            <!-- Capas de Decisión -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-              <h3 class="font-semibold text-xs text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span>🧱</span> Aporte por Capa
-              </h3>
-              
-              <div class="space-y-2 text-xs">
                 <div>
-                  <div class="flex justify-between text-slate-300 mb-1">
-                    <span>1. Reglas Dinámicas Versionadas</span>
-                    <span id="score-rules-text" class="font-bold text-blue-400 font-mono">680</span>
-                  </div>
-                  <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div id="bar-rules" class="bg-blue-500 h-full progress-bar" style="width: 68%;"></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="flex justify-between text-slate-300 mb-1">
-                    <span>2. Modelo ML (XGBoost Inferencia)</span>
-                    <span id="score-ml-text" class="font-bold text-purple-400 font-mono">750</span>
-                  </div>
-                  <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div id="bar-ml" class="bg-purple-500 h-full progress-bar" style="width: 75%;"></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="flex justify-between text-slate-300 mb-1">
-                    <span>3. Señales de Grafo & Red</span>
-                    <span id="score-graph-text" class="font-bold text-amber-400 font-mono">710</span>
-                  </div>
-                  <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div id="bar-graph" class="bg-amber-500 h-full progress-bar" style="width: 71%;"></div>
-                  </div>
+                  <div class="text-xs font-bold text-slate-800">Pago QR Restaurante Don Jorge</div>
+                  <div class="text-[11px] text-slate-500">Comercio Aliado Yuma • Ref: TX-8920</div>
                 </div>
               </div>
-
-              <!-- Códigos de Razón -->
-              <div class="pt-2 border-t border-slate-800">
-                <span class="text-[11px] font-semibold text-slate-400">Códigos de Razón Oficiales:</span>
-                <div id="reason-codes-badges" class="flex flex-wrap gap-1.5 mt-1.5">
-                  <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-mono">RAZ-DEV-01</span>
-                  <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-mono">RAZ-VEL-01</span>
-                </div>
+              <div class="text-right">
+                <div class="text-xs font-bold text-slate-900 font-mono">- $45.000 COP</div>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Exitosa</span>
               </div>
             </div>
 
-            <!-- Explicabilidad TreeSHAP -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-              <h3 class="font-semibold text-xs text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span>🔍</span> Explicabilidad (Top Variables SHAP)
-              </h3>
-              <p class="text-[11px] text-slate-400">Atribución aditiva local al score final para auditoría y analista.</p>
-              
-              <div id="shap-bars-container" class="space-y-2 text-xs">
-                <!-- Se llena dinámicamente -->
+            <!-- Transacción 3 -->
+            <div class="py-3 flex items-center justify-between hover:bg-slate-50/70 px-2 rounded-xl transition cursor-pointer" onclick="verComprobante('TX-8919', 'Recarga PSE', 'Acreditación Bancolombia', '+ $500.000', '18 Nov 2026, 09:12', 'Aprobada')">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg font-bold">
+                  ↙️
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-slate-800">Recarga por PSE (Bancolombia)</div>
+                  <div class="text-[11px] text-slate-500">Depósito en línea verificado • Ref: TX-8919</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-bold text-emerald-600 font-mono">+ $500.000 COP</div>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Acreditada</span>
+              </div>
+            </div>
+
+            <!-- Transacción 4 -->
+            <div class="py-3 flex items-center justify-between hover:bg-slate-50/70 px-2 rounded-xl transition cursor-pointer" onclick="verComprobante('TX-8918', 'Pago de Factura', 'Enel Codensa (Energía)', '- $98.400', '17 Nov 2026, 17:05', 'Aprobada')">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg font-bold">
+                  🧾
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-slate-800">Pago Servicio Enel Codensa</div>
+                  <div class="text-[11px] text-slate-500">Cuenta de cobro 210948-2 • Ref: TX-8918</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-bold text-slate-900 font-mono">- $98.400 COP</div>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Pagado</span>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Presupuesto de Latencia (Waterfall) -->
-          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
-            <div class="flex items-center justify-between text-xs">
-              <h3 class="font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span>⏱️</span> Presupuesto de Latencia por Etapa (Meta P99: 245 ms)
-              </h3>
-              <span class="text-slate-400 font-mono text-[11px]">Ruta caliente con lookup materializado</span>
-            </div>
+      </section>
 
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs mt-2">
-              <div class="bg-slate-800/60 p-2 rounded border border-slate-700/50">
-                <div class="text-[10px] text-slate-400">1. Contexto Caché</div>
-                <div class="font-mono text-white font-bold" id="lat-cache">12.5 ms</div>
-              </div>
-              <div class="bg-slate-800/60 p-2 rounded border border-slate-700/50">
-                <div class="text-[10px] text-slate-400">2. Reglas Dinámicas</div>
-                <div class="font-mono text-white font-bold" id="lat-rules">11.4 ms</div>
-              </div>
-              <div class="bg-slate-800/60 p-2 rounded border border-slate-700/50">
-                <div class="text-[10px] text-slate-400">3. ML Inferencia</div>
-                <div class="font-mono text-white font-bold" id="lat-ml">16.8 ms</div>
-              </div>
-              <div class="bg-slate-800/60 p-2 rounded border border-slate-700/50">
-                <div class="text-[10px] text-slate-400">4. Grafo Lookup</div>
-                <div class="font-mono text-white font-bold" id="lat-graph">14.1 ms</div>
-              </div>
-              <div class="bg-slate-800/60 p-2 rounded border border-slate-700/50">
-                <div class="text-[10px] text-slate-400">5. SHAP Explicación</div>
-                <div class="font-mono text-white font-bold" id="lat-shap">14.3 ms</div>
-              </div>
+      <!-- ========================================== -->
+      <!-- 2. TRANSFERENCIAS INMEDIATAS (TRANSFIYA) -->
+      <!-- ========================================== -->
+      <section id="user-view-transfer" class="space-y-6 hidden">
+        <div class="max-w-2xl mx-auto bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
+          <div class="border-b border-slate-100 pb-4">
+            <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+              <span>💸</span> Transferencias Inmediatas
+            </h2>
+            <p class="text-xs text-slate-500">Envía dinero en segundos a cualquier billetera o cuenta bancaria en Colombia sin costo.</p>
+          </div>
+
+          <!-- Tipo de Llave Destino -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-2">Selecciona el tipo de llave de la contraparte:</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <button type="button" onclick="setTransferKeyType('CELULAR')" id="key-type-celular" class="p-2.5 rounded-xl border border-blue-600 bg-blue-50 text-blue-700 font-bold text-center transition">
+                📱 Celular
+              </button>
+              <button type="button" onclick="setTransferKeyType('DOCUMENTO')" id="key-type-documento" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 font-medium text-center transition">
+                🪪 Cédula / NIT
+              </button>
+              <button type="button" onclick="setTransferKeyType('CORREO')" id="key-type-correo" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 font-medium text-center transition">
+                ✉️ Correo
+              </button>
+              <button type="button" onclick="setTransferKeyType('CUENTA')" id="key-type-cuenta" class="p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 font-medium text-center transition">
+                🏦 Cuenta Yuma
+              </button>
             </div>
           </div>
 
-        </div>
-      </div>
-    </section>
+          <!-- Contactos Frecuentes -->
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1.5">Contactos Frecuentes:</label>
+            <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+              <button onclick="seleccionarContactoRapido('3104567890', 'Mateo Gómez')" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition flex-shrink-0">
+                <span>👤</span> Mateo Gómez (310-456)
+              </button>
+              <button onclick="seleccionarContactoRapido('3129876543', 'Mamá - María Rosa')" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition flex-shrink-0">
+                <span>❤️</span> Mamá (312-987)
+              </button>
+              <button onclick="seleccionarContactoRapido('3001122334', 'Droguería San Jorge')" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition flex-shrink-0">
+                <span>💊</span> Droguería San Jorge
+              </button>
+            </div>
+          </div>
 
-    <!-- TAB 2: CONSOLA DEL ANALISTA SOC (COLA PRIORIZADA) -->
-    <section id="tab-soc" class="space-y-6 hidden">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h2 class="font-bold text-lg text-white">Cola Priorizada de Casos (SOC Fraude)</h2>
-          <p class="text-xs text-slate-400">Ordenada estrictamente por Score de Riesgo y Monto en Juego. SLA de atención &lt; 5 minutos.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-slate-400">Capacidad: 12 analistas activos</span>
-          <button onclick="recargarCasos()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300">
-            🔄 Actualizar Cola
-          </button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- Lista de Casos en Cola -->
-        <div class="lg:col-span-5 space-y-3" id="cases-list-container">
-          <!-- Se llena dinámicamente -->
-        </div>
-
-        <!-- Detalle del Caso Seleccionado & Grafo Interactivo -->
-        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4" id="case-detail-pane">
-          <div class="flex items-start justify-between border-b border-slate-800 pb-3">
+          <!-- Formulario de Envío -->
+          <form onsubmit="event.preventDefault(); iniciarTransferenciaUsuario();" class="space-y-4">
             <div>
-              <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-base text-white" id="detail-case-id">CASO-202611-101</span>
-                <span id="detail-badge" class="px-2.5 py-0.5 rounded text-xs font-bold badge-retener">RETENER</span>
-              </div>
-              <p class="text-xs text-slate-400 mt-0.5" id="detail-modalidad">Toma de Cuenta (ATO) vía Phishing</p>
+              <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-dest-key">Número de Celular:</label>
+              <input type="text" id="usr-tx-dest" placeholder="Ej. 310 456 7890" value="3104567890" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none">
             </div>
-            <div class="text-right">
-              <span class="text-[10px] text-slate-400 uppercase">Monto Retenido</span>
-              <div class="font-mono font-bold text-emerald-400 text-lg" id="detail-monto">COP $950.000</div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Monto a Enviar (COP):</label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-2.5 text-slate-400 font-bold text-sm">$</span>
+                <input type="number" id="usr-tx-amount" min="1000" max="3800000" value="85000" required class="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-base font-bold font-mono focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none">
+              </div>
+              <div class="flex gap-1.5 mt-2">
+                <button type="button" onclick="setAmountQuick(20000)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-semibold text-slate-600">$20.000</button>
+                <button type="button" onclick="setAmountQuick(50000)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-semibold text-slate-600">$50.000</button>
+                <button type="button" onclick="setAmountQuick(100000)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-semibold text-slate-600">$100.000</button>
+                <button type="button" onclick="setAmountQuick(200000)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-semibold text-slate-600">$200.000</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Concepto o Nota (Opcional):</label>
+              <input type="text" id="usr-tx-memo" placeholder="Ej. Almuerzo de trabajo, pago cuota..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none">
+            </div>
+
+            <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 flex items-center justify-between text-xs">
+              <span class="text-blue-800">Costo de la transacción:</span>
+              <span class="font-bold text-emerald-700">$0 COP (Gratis e Ilimitado)</span>
+            </div>
+
+            <button type="submit" class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-600/25 transition flex items-center justify-center gap-2">
+              <span>🚀</span> Enviar Dinero Seguro
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 3. PAGOS CON CÓDIGO QR -->
+      <!-- ========================================== -->
+      <section id="user-view-qr" class="space-y-6 hidden">
+        <div class="max-w-2xl mx-auto bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+                <span>📱</span> Pagos y Cobros con QR
+              </h2>
+              <p class="text-xs text-slate-500">Paga al instante en miles de establecimientos o genera tu código para cobrar.</p>
+            </div>
+            <div class="flex rounded-xl bg-slate-100 p-1 text-xs font-bold">
+              <button onclick="switchQrSubTab('scan')" id="qr-tab-btn-scan" class="px-3 py-1.5 rounded-lg bg-white shadow-sm text-blue-700">Escanear QR</button>
+              <button onclick="switchQrSubTab('generate')" id="qr-tab-btn-generate" class="px-3 py-1.5 rounded-lg text-slate-600">Mi Código</button>
             </div>
           </div>
 
-          <!-- Línea de Tiempo de Sesión -->
-          <div class="space-y-1.5">
-            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Cronología de Eventos (Timeline de Sospecha):</span>
-            <div class="bg-slate-800/40 p-3 rounded-lg border border-slate-800 text-xs space-y-2" id="detail-timeline">
-              <div class="flex items-center gap-2 text-slate-300">
-                <span class="text-blue-400 font-mono">10:10:12</span> 
-                <span>Inicio de sesión desde dispositivo nuevo no enrolado (Android 14, IP fuera de rango)</span>
+          <!-- Sub-vista A: Escáner QR simulado -->
+          <div id="qr-pane-scan" class="space-y-4">
+            <div class="w-full h-64 bg-slate-900 rounded-2xl relative flex flex-col items-center justify-center text-white overflow-hidden border-2 border-dashed border-blue-400">
+              <div class="w-44 h-44 border-2 border-emerald-400 rounded-2xl relative flex items-center justify-center">
+                <div class="w-full h-0.5 bg-emerald-400/80 absolute top-1/2 -translate-y-1/2 animate-pulse"></div>
+                <span class="text-xs text-slate-400 font-mono">Apunta al código QR</span>
               </div>
-              <div class="flex items-center gap-2 text-amber-300">
-                <span class="text-amber-400 font-mono">10:12:05</span> 
-                <span>Cambio de contraseña y solicitud de nuevo token de seguridad</span>
-              </div>
-              <div class="flex items-center gap-2 text-red-300">
-                <span class="text-red-400 font-mono">10:14:20</span> 
-                <span>Intento de transferencia inmediata por $950.000 (98% del saldo) hacia cuenta receptora nueva</span>
+              <p class="text-xs text-slate-300 mt-3">Cámara lista • Escaneo automático interoperable</p>
+            </div>
+
+            <!-- Demo rápida de comercios con QR -->
+            <div>
+              <span class="text-xs font-bold text-slate-600 block mb-2">Simular pago a comercios aliados:</span>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button onclick="simularPagoQr('Éxito Express', 35000)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 text-left transition bg-slate-50">
+                  <div class="font-bold text-xs text-slate-800">Éxito Express</div>
+                  <div class="text-[11px] text-slate-500">Monto: $35.000 COP</div>
+                </button>
+                <button onclick="simularPagoQr('Cafetería Central', 8500)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 text-left transition bg-slate-50">
+                  <div class="font-bold text-xs text-slate-800">Cafetería Central</div>
+                  <div class="text-[11px] text-slate-500">Monto: $8.500 COP</div>
+                </button>
+                <button onclick="simularPagoQr('D1 Vecinal', 24900)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 text-left transition bg-slate-50">
+                  <div class="font-bold text-xs text-slate-800">Tienda D1</div>
+                  <div class="text-[11px] text-slate-500">Monto: $24.900 COP</div>
+                </button>
               </div>
             </div>
           </div>
 
-          <!-- Visualizador de Red / Grafo de Mulas -->
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Grafo de Red Transaccional & Detección de Mulas:</span>
-              <span class="text-[10px] text-amber-400">Fan-In crítico detectado en cuenta destino</span>
-            </div>
+          <!-- Sub-vista B: Mi Código QR para recibir dinero -->
+          <div id="qr-pane-generate" class="space-y-4 text-center hidden">
+            <p class="text-xs text-slate-500">Muestra este código a tus clientes o amigos para recibir transferencias sin revelar tu número telefónico.</p>
             
-            <div class="w-full h-44 bg-slate-950 rounded-lg border border-slate-800 relative flex items-center justify-center overflow-hidden" id="graph-canvas-container">
-              <!-- SVG interactivo de Grafo -->
-              <svg class="w-full h-full" id="mule-svg" viewBox="0 0 500 200">
-                <!-- Aristas -->
-                <line x1="80" y1="100" x2="250" y2="100" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4" />
-                <line x1="160" y1="40" x2="250" y2="100" stroke="#ef4444" stroke-width="2" />
-                <line x1="160" y1="160" x2="250" y2="100" stroke="#ef4444" stroke-width="2" />
-                <line x1="250" y1="100" x2="420" y2="100" stroke="#8b5cf6" stroke-width="3" />
-
-                <!-- Nodos -->
-                <!-- Cuenta Origen Víctima -->
-                <circle cx="80" cy="100" r="18" fill="#1e293b" stroke="#3b82f6" stroke-width="2" />
-                <text x="80" y="104" text-anchor="middle" fill="#93c5fd" font-size="9" font-family="monospace">Víctima</text>
-                <text x="80" y="130" text-anchor="middle" fill="#94a3b8" font-size="8">CTA-88310</text>
-
-                <!-- Otras cuentas alimentando (Fan-in) -->
-                <circle cx="160" cy="40" r="14" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5" />
-                <text x="160" y="44" text-anchor="middle" fill="#fcd34d" font-size="8">Otr-1</text>
-
-                <circle cx="160" cy="160" r="14" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5" />
-                <text x="160" y="164" text-anchor="middle" fill="#fcd34d" font-size="8">Otr-2</text>
-
-                <!-- Cuenta Mula Receptora -->
-                <circle cx="250" cy="100" r="22" fill="#450a0a" stroke="#ef4444" stroke-width="3" />
-                <text x="250" y="104" text-anchor="middle" fill="#fca5a5" font-weight="bold" font-size="9">MULA</text>
-                <text x="250" y="135" text-anchor="middle" fill="#f87171" font-size="9" font-family="monospace">CTA-99231</text>
-                <text x="250" y="145" text-anchor="middle" fill="#fca5a5" font-size="7">Fan-in: 8 | Antig: 2d</text>
-
-                <!-- Dispersión a Efectivo / Corresponsal -->
-                <circle cx="420" cy="100" r="20" fill="#2e1065" stroke="#a855f7" stroke-width="2" />
-                <text x="420" y="104" text-anchor="middle" fill="#d8b4fe" font-size="9">CASH-OUT</text>
-                <text x="420" y="130" text-anchor="middle" fill="#c084fc" font-size="8">Corresponsal</text>
+            <div class="w-56 h-56 bg-white mx-auto p-4 rounded-2xl border-2 border-slate-800 shadow-md flex flex-col items-center justify-center">
+              <!-- SVG de código QR estilizado -->
+              <svg viewBox="0 0 100 100" class="w-full h-full text-slate-900">
+                <rect x="10" y="10" width="25" height="25" fill="none" stroke="currentColor" stroke-width="4"/>
+                <rect x="16" y="16" width="13" height="13" fill="currentColor"/>
+                <rect x="65" y="10" width="25" height="25" fill="none" stroke="currentColor" stroke-width="4"/>
+                <rect x="71" y="16" width="13" height="13" fill="currentColor"/>
+                <rect x="10" y="65" width="25" height="25" fill="none" stroke="currentColor" stroke-width="4"/>
+                <rect x="16" y="71" width="13" height="13" fill="currentColor"/>
+                <!-- Pixels de datos -->
+                <rect x="45" y="15" width="8" height="8" fill="currentColor"/>
+                <rect x="42" y="32" width="6" height="6" fill="currentColor"/>
+                <rect x="52" y="32" width="6" height="6" fill="currentColor"/>
+                <rect x="20" y="45" width="8" height="8" fill="currentColor"/>
+                <rect x="35" y="45" width="10" height="10" fill="currentColor"/>
+                <rect x="50" y="45" width="10" height="10" fill="#2563EB"/>
+                <rect x="65" y="45" width="8" height="8" fill="currentColor"/>
+                <rect x="80" y="45" width="8" height="8" fill="currentColor"/>
+                <rect x="45" y="65" width="8" height="8" fill="currentColor"/>
+                <rect x="65" y="65" width="12" height="6" fill="currentColor"/>
+                <rect x="65" y="77" width="8" height="8" fill="currentColor"/>
+                <rect x="80" y="77" width="8" height="8" fill="currentColor"/>
               </svg>
             </div>
+
+            <div class="font-mono text-xs font-bold text-slate-800">
+              YUMA-QR://3128831049?titular=JUAN_CAMILO
+            </div>
+
+            <div class="flex justify-center gap-2">
+              <button onclick="alert('✅ Código QR guardado en tu galería.')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">
+                📥 Descargar Imagen
+              </button>
+              <button onclick="alert('🔗 Enlace de cobro copiado al portapapeles.')" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm">
+                📤 Compartir Enlace
+              </button>
+            </div>
           </div>
 
-          <!-- Acciones Humanas del Analista (Principio Rector: Bloqueo solo humano) -->
-          <div class="border-t border-slate-800 pt-3">
-            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">Decisión del Analista (Bucle de Aprendizaje Activo):</span>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 4. RECARGAS & DEPÓSITOS -->
+      <!-- ========================================== -->
+      <section id="user-view-recharge" class="space-y-6 hidden">
+        <div class="max-w-2xl mx-auto bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
+          <div class="border-b border-slate-100 pb-3">
+            <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+              <span>⚡</span> Recargar Saldo
+            </h2>
+            <p class="text-xs text-slate-500">Agrega fondos a tu cuenta Yuma Pay de forma inmediata y sin cargos.</p>
+          </div>
+
+          <div class="space-y-3">
+            <label class="block text-xs font-bold text-slate-600">Canal de Recarga:</label>
             
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button onclick="resolverCasoActual('DESCARTAR_FALSO_POSITIVO')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition">
-                ✓ Descartar (Falso Positivo)
-              </button>
-              <button onclick="resolverCasoActual('SOLICITAR_VERIFICACION')" class="px-3 py-2 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-600/40 text-xs font-medium transition">
-                📱 Desafiar (2FA/OTP)
-              </button>
-              <button onclick="resolverCasoActual('CONFIRMAR_FRAUDE')" class="px-3 py-2 rounded-lg bg-orange-600/30 hover:bg-orange-600/50 text-orange-200 border border-orange-500/40 text-xs font-medium transition">
-                🚨 Confirmar Fraude
-              </button>
-              <button onclick="resolverCasoActual('BLOQUEO_DEFINITIVO')" class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold text-xs transition shadow-lg shadow-red-600/30">
-                ⛔ Bloqueo Definitivo
-              </button>
+            <!-- Opción 1: PSE -->
+            <div class="p-4 rounded-xl border-2 border-blue-600 bg-blue-50/50 flex items-start justify-between cursor-pointer">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg">
+                  PSE
+                </div>
+                <div>
+                  <div class="font-bold text-xs text-slate-800">Débito Bancario PSE (Recomendado)</div>
+                  <div class="text-[11px] text-slate-500">Bancolombia, Davivienda, Nequi, Daviplata, BBVA, Colpatria y más</div>
+                  <span class="text-[10px] text-emerald-700 font-semibold">✓ Acreditación inmediata (0 min)</span>
+                </div>
+              </div>
+              <input type="radio" checked name="recharge-channel" class="mt-1 text-blue-600">
             </div>
-            <p class="text-[10px] text-slate-400 mt-2 text-center">
-              Al confirmar o descartar, el motor actualiza en caliente los pesos de reglas y el dataset de reentrenamiento.
-            </p>
+
+            <!-- Opción 2: Corresponsales Físicos -->
+            <div class="p-4 rounded-xl border border-slate-200 hover:border-slate-300 flex items-start justify-between cursor-pointer" onclick="alert('Convenio Yuma Pay No. 110944 en Efecty, Baloto o SuperGIROS. Presenta tu cédula para recargar en efectivo.')">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-lg">
+                  🏪
+                </div>
+                <div>
+                  <div class="font-bold text-xs text-slate-800">Efectivo en Corresponsales</div>
+                  <div class="text-[11px] text-slate-500">Más de 25.000 puntos Efecty, Baloto, SuperGIROS, Éxito</div>
+                  <span class="text-[10px] text-slate-500">Convenio: 110944</span>
+                </div>
+              </div>
+              <input type="radio" name="recharge-channel" class="mt-1 text-blue-600">
+            </div>
           </div>
+
+          <!-- Formulario PSE -->
+          <form onsubmit="event.preventDefault(); simularRecargaPSE();" class="space-y-4 pt-2">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Banco Origen:</label>
+              <select id="recharge-bank" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:border-blue-600 outline-none">
+                <option value="Bancolombia">Bancolombia</option>
+                <option value="Nequi">Nequi</option>
+                <option value="Daviplata">Daviplata</option>
+                <option value="Banco de Bogotá">Banco de Bogotá</option>
+                <option value="Davivienda">Davivienda</option>
+                <option value="BBVA Colombia">BBVA Colombia</option>
+                <option value="Scotiabank Colpatria">Scotiabank Colpatria</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Monto a Recargar (COP):</label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-2.5 text-slate-400 font-bold text-sm">$</span>
+                <input type="number" id="recharge-amount" min="10000" max="5000000" value="250000" required class="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-base font-bold font-mono focus:border-blue-600 outline-none">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
+              <span>💳</span> Continuar al Portal Bancario PSE
+            </button>
+          </form>
         </div>
+      </section>
 
-      </div>
-    </section>
+      <!-- ========================================== -->
+      <!-- 5. PAGO DE SERVICIOS -->
+      <!-- ========================================== -->
+      <section id="user-view-bills" class="space-y-6 hidden">
+        <div class="max-w-2xl mx-auto bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
+          <div class="border-b border-slate-100 pb-3">
+            <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+              <span>🧾</span> Pago de Servicios Públicos y Privados
+            </h2>
+            <p class="text-xs text-slate-500">Paga tus facturas de energía, agua, gas, telefonía e internet sin hacer filas.</p>
+          </div>
 
-    <!-- TAB 3: MOTOR DE 3 CAPAS & ARQUITECTURA -->
-    <section id="tab-engine" class="space-y-6 hidden">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-        <div>
-          <h2 class="font-bold text-lg text-white">Arquitectura del Motor en 3 Capas</h2>
-          <p class="text-xs text-slate-400">
-            Sustitución de las 140 reglas estáticas por un pipeline sinérgico: Reglas Dinámicas Versionadas + Modelo XGBoost + Red y Grafo.
-          </p>
+          <div class="space-y-3">
+            <label class="block text-xs font-bold text-slate-600">Empresas y Convenios Frecuentes:</label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+              <button onclick="seleccionarConvenioServicio('Enel Codensa (Energía)', 98400)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 text-left transition bg-slate-50">
+                <div class="font-bold text-slate-800">⚡ Enel Codensa</div>
+                <div class="text-[11px] text-slate-500">Energía Bogotá y Cundinamarca</div>
+              </button>
+              <button onclick="seleccionarConvenioServicio('Acueducto de Bogotá', 74200)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 text-left transition bg-slate-50">
+                <div class="font-bold text-slate-800">💧 Acueducto Bogotá</div>
+                <div class="text-[11px] text-slate-500">Agua y Alcantarillado</div>
+              </button>
+              <button onclick="seleccionarConvenioServicio('Vanti Gas Natural', 42100)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 text-left transition bg-slate-50">
+                <div class="font-bold text-slate-800">🔥 Vanti Gas</div>
+                <div class="text-[11px] text-slate-500">Gas Natural Domiciliario</div>
+              </button>
+              <button onclick="seleccionarConvenioServicio('Claro Hogar & Móvil', 112000)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 text-left transition bg-slate-50">
+                <div class="font-bold text-slate-800">📶 Claro Colombia</div>
+                <div class="text-[11px] text-slate-500">Internet y Telefonía</div>
+              </button>
+              <button onclick="seleccionarConvenioServicio('EPM Medellín', 145000)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 text-left transition bg-slate-50">
+                <div class="font-bold text-slate-800">🏢 EPM</div>
+                <div class="text-[11px] text-slate-500">Servicios Públicos Medellín</div>
+              </button>
+              <button onclick="seleccionarConvenioServicio('Tigo Hogar', 89900)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 text-left transition bg-slate-50">
+                <div class="font-bold text-slate-800">🌐 Tigo Colombia</div>
+                <div class="text-[11px] text-slate-500">Fibra óptica</div>
+              </button>
+            </div>
+          </div>
+
+          <form onsubmit="event.preventDefault(); simularPagoFactura();" class="space-y-4 pt-2">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Empresa Seleccionada:</label>
+              <input type="text" id="bill-company" value="Enel Codensa (Energía)" readonly class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-300 text-xs font-bold text-slate-800">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Número de Referencia / Factura:</label>
+                <input type="text" id="bill-ref" value="21094829" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:border-blue-600 outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Valor a Pagar (COP):</label>
+                <input type="number" id="bill-amount" value="98400" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold font-mono focus:border-blue-600 outline-none">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
+              <span>🧾</span> Pagar Factura con Saldo Yuma
+            </button>
+          </form>
         </div>
+      </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-blue-400 text-sm">Capa 1: Reglas Dinámicas</span>
-              <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono text-[10px]">Versionable</span>
+      <!-- ========================================== -->
+      <!-- 6. TARJETA DÉBITO VIRTUAL -->
+      <!-- ========================================== -->
+      <section id="user-view-card" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-4xl mx-auto">
+          
+          <!-- Render de la Tarjeta Débito Virtual -->
+          <div class="lg:col-span-6 flex flex-col items-center justify-center">
+            <div class="virtual-card w-full max-w-sm rounded-2xl p-6 text-white aspect-[1.58/1] flex flex-col justify-between select-none">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="font-black tracking-tight text-lg text-white">Yuma Pay</span>
+                  <span class="text-[9px] bg-white/20 px-1.5 py-0.5 rounded font-mono">DÉBITO</span>
+                </div>
+                <span class="text-xl">📶</span>
+              </div>
+
+              <!-- Chip EMV -->
+              <div class="w-11 h-8 rounded-lg bg-gradient-to-tr from-amber-400 to-amber-200 border border-amber-500/50 flex items-center justify-center">
+                <div class="w-8 h-5 border border-amber-600/40 rounded-sm"></div>
+              </div>
+
+              <!-- Número de Tarjeta y Datos -->
+              <div>
+                <div class="font-mono text-lg sm:text-xl tracking-wider font-semibold" id="card-pan-display">
+                  •••• •••• •••• 5510
+                </div>
+                <div class="flex items-center justify-between mt-3 text-xs">
+                  <div>
+                    <span class="text-[9px] text-slate-300 uppercase tracking-wider block">Titular</span>
+                    <span class="font-bold tracking-wide">JUAN CAMILO R.</span>
+                  </div>
+                  <div>
+                    <span class="text-[9px] text-slate-300 uppercase tracking-wider block">Vence</span>
+                    <span class="font-mono font-bold" id="card-exp-display">11/29</span>
+                  </div>
+                  <div>
+                    <span class="text-[9px] text-slate-300 uppercase tracking-wider block">CVV Dinámico</span>
+                    <span class="font-mono font-bold text-amber-300" id="card-cvv-display">•••</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <p class="text-slate-300">Conocimiento experto y cumplimiento regulatorio. Genera vetos duros y códigos de razón auditables.</p>
-            <div class="mt-3 text-slate-400">12 reglas activas (RD-001 a RD-012) editables en caliente sin reiniciar servicios.</div>
+
+            <!-- Botón Ver Datos -->
+            <button onclick="toggleCardData()" id="btn-toggle-card-data" class="mt-4 px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-sm flex items-center gap-2">
+              <span>👁️</span> Mostrar Datos Sensibles (CVV Dinámico)
+            </button>
           </div>
 
-          <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-purple-400 text-sm">Capa 2: Modelo ML (XGBoost)</span>
-              <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px]">ROC AUC: 0.94</span>
+          <!-- Controles y Seguridad de la Tarjeta -->
+          <div class="lg:col-span-6 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span>🛡️</span> Controles de Seguridad de Tarjeta
+            </h3>
+            
+            <div class="space-y-3 text-xs">
+              <!-- Switch 1: Bloqueo Temporal -->
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <div>
+                  <div class="font-bold text-slate-800">Bloqueo Temporal Inmediato</div>
+                  <div class="text-[11px] text-slate-500">Congela tu tarjeta al instante si no la estás usando</div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="card-freeze-toggle" onchange="toggleCardFreeze(this.checked)" class="sr-only peer">
+                  <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              <!-- Switch 2: Compras Internacionales -->
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <div>
+                  <div class="font-bold text-slate-800">Compras por Internet (E-commerce)</div>
+                  <div class="text-[11px] text-slate-500">Permite pagos en comercios online seguros (3D Secure)</div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" checked class="sr-only peer">
+                  <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              <!-- Slider: Tope diario de compras -->
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-slate-800">Tope Diario de Compras:</span>
+                  <span class="font-mono font-bold text-blue-700" id="card-limit-display">$1.500.000 COP</span>
+                </div>
+                <input type="range" min="100000" max="3800000" step="50000" value="1500000" oninput="document.getElementById('card-limit-display').textContent = '$' + parseInt(this.value).toLocaleString() + ' COP'" class="w-full accent-blue-600">
+                <div class="flex justify-between text-[10px] text-slate-400">
+                  <span>$100.000</span>
+                  <span>$3.800.000 (Máximo)</span>
+                </div>
+              </div>
             </div>
-            <p class="text-slate-300">Captura interacciones no lineales entre señales débiles. Produce score continuo (0-1000) y TreeSHAP local.</p>
-            <div class="mt-3 text-slate-400">Inferencia en lote de 1 en &lt; 25 ms. Campeón actual contra histórico etiquetado.</div>
+
+            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800">
+              💡 <strong>CVV Dinámico:</strong> Cambia cada 5 minutos para que nadie pueda clonar tu tarjeta en compras web.
+            </div>
           </div>
 
-          <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-amber-400 text-sm">Capa 3: Señales Grafo & Red</span>
-              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]">Lookup &lt; 2 ms</span>
-            </div>
-            <p class="text-slate-300">Monitoreo de redes de cuentas mula, fan-in anómalo, caminos de dispersión rápida y comunidades.</p>
-            <div class="mt-3 text-slate-400">Grafo completo materializado en memoria (120.972 txs, 90 mulas confirmadas).</div>
-          </div>
         </div>
+      </section>
 
-        <!-- Catálogo de Reglas en Caliente -->
-        <div class="pt-4 border-t border-slate-800">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-semibold text-sm text-white">Catálogo de Reglas Dinámicas Activas (Edición en Caliente)</h3>
-            <span class="text-xs text-slate-400">Ajuste de pesos sin despliegue de código</span>
+      <!-- ========================================== -->
+      <!-- 7. HISTORIAL COMPLETO DE TRANSACCIONES -->
+      <!-- ========================================== -->
+      <section id="user-view-history" class="space-y-6 hidden">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-base font-black text-slate-800">Historial de Transacciones</h2>
+              <p class="text-xs text-slate-500">Registro histórico completo respaldado con comprobante digital.</p>
+            </div>
+            
+            <!-- Filtro de Búsqueda -->
+            <div class="flex items-center gap-2">
+              <input type="text" placeholder="Buscar por referencia o comercio..." class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:border-blue-600 outline-none w-56">
+              <button class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700">
+                Filtrar
+              </button>
+            </div>
           </div>
 
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="border-b border-slate-800 text-slate-400">
-                  <th class="py-2 px-3">Código</th>
-                  <th class="py-2 px-3">Nombre de Regla</th>
-                  <th class="py-2 px-3">Código Razón</th>
-                  <th class="py-2 px-3">Precisión Histórica</th>
-                  <th class="py-2 px-3">Peso</th>
-                  <th class="py-2 px-3">Estado</th>
+                <tr class="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                  <th class="py-2.5 px-3">Referencia</th>
+                  <th class="py-2.5 px-3">Fecha & Hora</th>
+                  <th class="py-2.5 px-3">Descripción / Contraparte</th>
+                  <th class="py-2.5 px-3">Tipo</th>
+                  <th class="py-2.5 px-3 text-right">Monto</th>
+                  <th class="py-2.5 px-3 text-center">Estado</th>
+                  <th class="py-2.5 px-3 text-center">Acción</th>
                 </tr>
               </thead>
-              <tbody id="rules-table-body" class="divide-y divide-slate-800/60">
-                <!-- Se llena dinámicamente -->
+              <tbody class="divide-y divide-slate-100" id="user-history-table-body">
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-3 font-mono font-bold text-blue-700">TX-8921</td>
+                  <td class="py-3 px-3 text-slate-600">19 Nov 2026, 14:30</td>
+                  <td class="py-3 px-3 font-semibold text-slate-800">Mateo Gómez (Transfiya)</td>
+                  <td class="py-3 px-3 text-slate-500">Transferencia Inmediata</td>
+                  <td class="py-3 px-3 font-mono font-bold text-right text-rose-600">- $120.000</td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">Aprobada</span></td>
+                  <td class="py-3 px-3 text-center"><button onclick="verComprobante('TX-8921', 'Transferencia Saliente', 'Mateo Gómez (Transfiya)', '- $120.000', '19 Nov 2026, 14:30', 'Aprobada')" class="text-blue-600 hover:underline font-bold">Comprobante</button></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-3 font-mono font-bold text-blue-700">TX-8920</td>
+                  <td class="py-3 px-3 text-slate-600">19 Nov 2026, 12:45</td>
+                  <td class="py-3 px-3 font-semibold text-slate-800">Restaurante Don Jorge</td>
+                  <td class="py-3 px-3 text-slate-500">Pago QR</td>
+                  <td class="py-3 px-3 font-mono font-bold text-right text-rose-600">- $45.000</td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">Aprobada</span></td>
+                  <td class="py-3 px-3 text-center"><button onclick="verComprobante('TX-8920', 'Pago con QR', 'Restaurante Don Jorge', '- $45.000', '19 Nov 2026, 12:45', 'Aprobada')" class="text-blue-600 hover:underline font-bold">Comprobante</button></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-3 font-mono font-bold text-blue-700">TX-8919</td>
+                  <td class="py-3 px-3 text-slate-600">18 Nov 2026, 09:12</td>
+                  <td class="py-3 px-3 font-semibold text-slate-800">Acreditación Bancolombia</td>
+                  <td class="py-3 px-3 text-slate-500">Recarga PSE</td>
+                  <td class="py-3 px-3 font-mono font-bold text-right text-emerald-600">+ $500.000</td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">Acreditada</span></td>
+                  <td class="py-3 px-3 text-center"><button onclick="verComprobante('TX-8919', 'Recarga PSE', 'Acreditación Bancolombia', '+ $500.000', '18 Nov 2026, 09:12', 'Aprobada')" class="text-blue-600 hover:underline font-bold">Comprobante</button></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-3 font-mono font-bold text-blue-700">TX-8918</td>
+                  <td class="py-3 px-3 text-slate-600">17 Nov 2026, 17:05</td>
+                  <td class="py-3 px-3 font-semibold text-slate-800">Enel Codensa (Energía)</td>
+                  <td class="py-3 px-3 text-slate-500">Pago de Servicios</td>
+                  <td class="py-3 px-3 font-mono font-bold text-right text-rose-600">- $98.400</td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">Pagada</span></td>
+                  <td class="py-3 px-3 text-center"><button onclick="verComprobante('TX-8918', 'Pago de Factura', 'Enel Codensa (Energía)', '- $98.400', '17 Nov 2026, 17:05', 'Aprobada')" class="text-blue-600 hover:underline font-bold">Comprobante</button></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-3 font-mono font-bold text-blue-700">TX-8917</td>
+                  <td class="py-3 px-3 text-slate-600">15 Nov 2026, 11:20</td>
+                  <td class="py-3 px-3 font-semibold text-slate-800">Retiro Corresponsal Efecty</td>
+                  <td class="py-3 px-3 text-slate-500">Retiro en Efectivo</td>
+                  <td class="py-3 px-3 font-mono font-bold text-right text-rose-600">- $150.000</td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">Completado</span></td>
+                  <td class="py-3 px-3 text-center"><button onclick="verComprobante('TX-8917', 'Retiro Corresponsal', 'Efecty Calle 72', '- $150.000', '15 Nov 2026, 11:20', 'Aprobada')" class="text-blue-600 hover:underline font-bold">Comprobante</button></td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
+      </section>
 
-      </div>
-    </section>
-
-    <!-- TAB 4: BUCLE DE RETROALIMENTACIÓN -->
-    <section id="tab-feedback" class="space-y-6 hidden">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-        <div>
-          <h2 class="font-bold text-lg text-white">Bucle Cerrado de Retroalimentación Continua</h2>
-          <p class="text-xs text-slate-400">
-            El motor actual pierde el conocimiento porque la decisión del analista muere en su hoja de cálculo. En Escudo Yuma, cada confirmación o descarte alimenta de inmediato la calibración de reglas y el dataset retador.
-          </p>
-        </div>
-
-        <!-- Comparativo de Por qué bajó el ruido -->
-        <div class="bg-slate-800/40 border border-slate-800 p-4 rounded-xl space-y-3">
-          <h3 class="font-semibold text-xs text-slate-300 uppercase tracking-wider">Aritmética del Descarte de Reglas Ruidosas</h3>
-          <p class="text-xs text-slate-300 leading-relaxed">
-            Las 4 reglas más ineficientes del motor anterior (<strong>R012 Retiro monto alto, R010 Acumulado diario, R011 Pago QR monto alto y R001 Transferencia monto alto</strong>) generaban <strong>8.292 de las 9.687 alertas (85.6%)</strong> con una precisión marginal de apenas <strong>6.7%</strong>. Escudo Yuma las convirtió en variables de contexto para el modelo XGBoost y dejó de alertar en solitario.
-          </p>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <div class="bg-red-950/20 border border-red-800/30 p-3 rounded-lg text-xs space-y-1">
-              <span class="font-bold text-red-400">Motor Anterior (140 Reglas Estáticas)</span>
-              <div class="flex justify-between text-slate-300"><span>Alertas diarias:</span> <span class="font-bold">4.000</span></div>
-              <div class="flex justify-between text-slate-300"><span>Falsos Positivos:</span> <span class="font-bold text-red-400">89.0%</span></div>
-              <div class="flex justify-between text-slate-300"><span>Alertas revisadas:</span> <span class="font-bold">33.7% (6.426 olvidadas)</span></div>
-              <div class="flex justify-between text-slate-300"><span>Mediana a revisión:</span> <span class="font-bold">169 minutos</span></div>
+      <!-- ========================================== -->
+      <!-- 8. PERFIL Y CONFIGURACIÓN DE SEGURIDAD -->
+      <!-- ========================================== -->
+      <section id="user-view-security" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          
+          <!-- Datos Personales -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span>👤</span> Datos del Titular
+            </h3>
+            
+            <div class="space-y-2.5 text-xs">
+              <div class="flex justify-between py-1.5 border-b border-slate-100">
+                <span class="text-slate-500">Nombre Completo:</span>
+                <span class="font-bold text-slate-800">Juan Camilo Restrepo</span>
+              </div>
+              <div class="flex justify-between py-1.5 border-b border-slate-100">
+                <span class="text-slate-500">Documento:</span>
+                <span class="font-bold text-slate-800 font-mono">CC 1.020.849.201</span>
+              </div>
+              <div class="flex justify-between py-1.5 border-b border-slate-100">
+                <span class="text-slate-500">Celular Registrado:</span>
+                <span class="font-bold text-slate-800 font-mono">+57 312 883 1049</span>
+              </div>
+              <div class="flex justify-between py-1.5 border-b border-slate-100">
+                <span class="text-slate-500">Correo Electrónico:</span>
+                <span class="font-bold text-slate-800">j.restrepo@email.com</span>
+              </div>
+              <div class="flex justify-between py-1.5 border-b border-slate-100">
+                <span class="text-slate-500">Estado de Cuenta:</span>
+                <span class="font-bold text-emerald-600">Activa & Verificada SEDPE</span>
+              </div>
             </div>
 
-            <div class="bg-emerald-950/20 border border-emerald-800/30 p-3 rounded-lg text-xs space-y-1">
-              <span class="font-bold text-emerald-400">Escudo Yuma (Motor 3 Capas)</span>
-              <div class="flex justify-between text-slate-300"><span>Alertas diarias:</span> <span class="font-bold text-emerald-400">~884</span></div>
-              <div class="flex justify-between text-slate-300"><span>Falsos Positivos:</span> <span class="font-bold text-emerald-400">54.2% (&lt; 60% meta)</span></div>
-              <div class="flex justify-between text-slate-300"><span>Alertas revisadas:</span> <span class="font-bold text-emerald-400">100% de alto riesgo</span></div>
-              <div class="flex justify-between text-slate-300"><span>Mediana a revisión:</span> <span class="font-bold text-emerald-400">&lt; 5 minutos</span></div>
+            <button onclick="alert('Para actualizar tus datos sensibles se requiere validación biométrica en la App móvil.')" class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">
+              Solicitar Actualización de Datos
+            </button>
+          </div>
+
+          <!-- Medidas de Seguridad & Dispositivos -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span>🔒</span> Ajustes de Seguridad
+            </h3>
+
+            <div class="space-y-3 text-xs">
+              <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
+                <div>
+                  <div class="font-bold text-slate-800">Autenticación Biométrica</div>
+                  <div class="text-[11px] text-slate-500">Huella o Face ID para confirmar envíos</div>
+                </div>
+                <input type="checkbox" checked class="accent-blue-600">
+              </div>
+
+              <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
+                <div>
+                  <div class="font-bold text-slate-800">Notificaciones de Transacción Push</div>
+                  <div class="text-[11px] text-slate-500">Alertas instantáneas para todo movimiento</div>
+                </div>
+                <input type="checkbox" checked class="accent-blue-600">
+              </div>
+
+              <div class="p-2.5 bg-slate-50 rounded-xl space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-slate-800">Dispositivo Principal Enrolado:</span>
+                  <span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Activo</span>
+                </div>
+                <p class="text-[11px] text-slate-600 font-mono">Samsung Galaxy S23 (DEV-HAB-99)</p>
+                <span class="text-[10px] text-slate-400">Registrado desde Septiembre 2024</span>
+              </div>
+            </div>
+
+            <button onclick="alert('Contraseña transaccional cambiada con éxito. Se notificó a tu correo de seguridad.')" class="w-full py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm">
+              🔑 Cambiar Clave de Seguridad
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- PERFIL B: ADMINISTRADOR (CONSOLA ESCUDO YUMA - PREVENCIÓN DEL FRAUDE) -->
+  <!-- ========================================================================= -->
+  <div id="view-admin" class="flex-1 flex flex-col bg-slate-950 text-slate-100 hidden">
+    
+    <!-- Sub-Navbar Administrativo de Escudo Yuma -->
+    <div class="bg-slate-900 border-b border-slate-800 sticky top-[61px] z-40 shadow-md">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        
+        <!-- Quick KPI Counters Institucionales -->
+        <div class="py-2.5 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/60 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-blue-400 font-black text-sm">Escudo Yuma</span>
+            <span class="text-slate-400">| Consola Operativa Antifraude en Tiempo Real (SOC SEDPE)</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60 flex items-center gap-2">
+              <span class="text-slate-400">Falsos Positivos:</span>
+              <span class="font-bold text-emerald-400 text-xs font-mono" id="kpi-fp">54.2%</span>
+              <span class="text-[9px] text-slate-400">(Antes 89.0%)</span>
+            </div>
+
+            <div class="bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60 flex items-center gap-2">
+              <span class="text-slate-400">Detección Fraude:</span>
+              <span class="font-bold text-blue-400 text-xs font-mono" id="kpi-det">86.8%</span>
+              <span class="text-[9px] text-slate-400">(Antes 62.6%)</span>
+            </div>
+
+            <div class="bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60 flex items-center gap-2">
+              <span class="text-slate-400">Latencia P99:</span>
+              <span class="font-bold text-purple-400 text-xs font-mono" id="kpi-lat">142 ms</span>
+              <span class="text-[9px] text-emerald-400 font-normal">&lt;300ms SLA</span>
+            </div>
+
+            <div class="bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60 hidden sm:flex items-center gap-2">
+              <span class="text-slate-400">Ahorro Mensual:</span>
+              <span class="font-bold text-emerald-400 text-xs font-mono" id="kpi-ahorro">COP $287.5M</span>
             </div>
           </div>
         </div>
 
-        <div class="flex items-center justify-between p-4 bg-blue-950/20 border border-blue-800/30 rounded-xl">
-          <div>
-            <h4 class="font-semibold text-xs text-blue-300">Ciclo Campeón / Retador (MLOps)</h4>
-            <p class="text-xs text-slate-400">El modelo retador evalúa en sombra el flujo continuo. Promoción controlada mensual.</p>
-          </div>
-          <button onclick="simularReentrenamiento()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold text-xs text-white transition">
-            🚀 Disparar Reentrenamiento Automático
+        <!-- Pestañas Administrativas Requeridas (A a F) -->
+        <div class="flex gap-1 overflow-x-auto py-1 text-xs font-medium scrollbar-none">
+          <button onclick="switchTab('overview')" id="tab-btn-overview" class="px-3.5 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>📊</span> A. Panel General
+          </button>
+          <button onclick="switchTab('sandbox')" id="tab-btn-sandbox" class="px-3.5 py-2 text-blue-400 border-b-2 border-blue-500 font-bold flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>⚡</span> B. Simulador de Transacciones (Sandbox)
+          </button>
+          <button onclick="switchTab('soc')" id="tab-btn-soc" class="px-3.5 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>🚨</span> C. Consola de Analistas (<span id="queue-badge-count" class="bg-red-500/20 text-red-400 px-1.5 py-0.2 rounded-full text-xs">4</span>)
+          </button>
+          <button onclick="switchTab('engine')" id="tab-btn-engine" class="px-3.5 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>⚙️</span> D. Motor Antifraude (3 Capas)
+          </button>
+          <button onclick="switchTab('feedback')" id="tab-btn-feedback" class="px-3.5 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>🔄</span> E. Retroalimentación & Reentrenamiento
+          </button>
+          <button onclick="switchTab('compliance')" id="tab-btn-compliance" class="px-3.5 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap transition">
+            <span>⚖️</span> F. Cumplimiento, No Discriminación & SARLAFT
           </button>
         </div>
 
       </div>
-    </section>
+    </div>
 
-    <!-- TAB 5: NO DISCRIMINACIÓN & CUMPLIMIENTO REGULATORIO -->
-    <section id="tab-compliance" class="space-y-6 hidden">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-        <div>
-          <h2 class="font-bold text-lg text-white">Auditoría de No Discriminación & Cumplimiento Normativo</h2>
-          <p class="text-xs text-slate-400">
-            Cumplimiento estricto de las directrices de la Superintendencia Financiera, SARLAFT, Ley 1581 de 2012 y Ley 1266 de 2008.
-          </p>
+    <!-- Contenedor Principal de la Consola Administrativa -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+      <!-- ===================================================================== -->
+      <!-- SECCIÓN A: PANEL GENERAL (OVERVIEW ADMINISTRATIVO) -->
+      <!-- ===================================================================== -->
+      <section id="tab-overview" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">Transacciones Hoy (1.8M/día)</div>
+            <div class="text-2xl font-black font-mono text-white mt-1">120.972</div>
+            <span class="text-[10px] text-emerald-400">✓ 99.27% Aprobadas en &lt;50ms</span>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">Alertas SOC Generadas Hoy</div>
+            <div class="text-2xl font-black font-mono text-blue-400 mt-1">884</div>
+            <span class="text-[10px] text-emerald-400">Reducción del 78% vs motor anterior</span>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">Casos Confirmados Fraude</div>
+            <div class="text-2xl font-black font-mono text-rose-400 mt-1">64</div>
+            <span class="text-[10px] text-slate-400">Monto evitado: $60.8M COP hoy</span>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div class="text-xs text-slate-400">Disponibilidad del Motor</div>
+            <div class="text-2xl font-black font-mono text-emerald-400 mt-1">99.99%</div>
+            <span class="text-[10px] text-emerald-400">Capacidad: 150 tx/s | SLA &lt; 300ms</span>
+          </div>
         </div>
 
-        <!-- Módulo Fairlearn -->
-        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/80 space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="font-semibold text-sm text-white flex items-center gap-2">
-              <span>⚖️</span> Auditoría Fairlearn & Análisis de Fuga de Proxy
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <span>📈</span> Evolución de Eficiencia: Escudo Yuma vs Motor Anterior
             </h3>
-            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold">
-              ✓ Auditoría Mensual APROBADA
-            </span>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-              <span class="text-slate-400">Paridad Demográfica (Diff):</span>
-              <div class="font-bold text-white text-base mt-0.5 font-mono">0.032</div>
-              <span class="text-[10px] text-emerald-400">Dentro del límite legal (&lt; 0.05)</span>
-            </div>
-            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-              <span class="text-slate-400">Impacto Dispar (Ratio):</span>
-              <div class="font-bold text-white text-base mt-0.5 font-mono">0.94</div>
-              <span class="text-[10px] text-emerald-400">Rango seguro (0.80 - 1.25)</span>
-            </div>
-            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-              <span class="text-slate-400">Odds Igualados (Diff):</span>
-              <div class="font-bold text-white text-base mt-0.5 font-mono">0.028</div>
-              <span class="text-[10px] text-emerald-400">Sin sesgo por subgrupo (&lt; 0.05)</span>
-            </div>
-          </div>
-
-          <!-- Variables Prohibidas -->
-          <div class="pt-2 text-xs">
-            <span class="text-slate-400 font-semibold block mb-1">Variables Prohibidas Excluidas de Forma Explícita:</span>
-            <div class="flex flex-wrap gap-1.5">
-              <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌ Edad del usuario</span>
-              <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌ Género / Sexo</span>
-              <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌ Región / Departamento</span>
-              <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌ Estrato socioeconómico</span>
-              <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌ Nivel de ingresos declarado</span>
+            <div class="space-y-3 text-xs">
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>Tasa de Detección de Fraude (Efectividad):</span>
+                  <span class="font-bold text-emerald-400 font-mono">86.8% (Antes 62.6%)</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="bg-emerald-500 h-full" style="width: 86.8%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>Tasa de Falsos Positivos (Ruido Operativo):</span>
+                  <span class="font-bold text-blue-400 font-mono">54.2% (Antes 89.0%)</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="bg-blue-500 h-full" style="width: 54.2%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>Mediana de Tiempo a Revisión Humana:</span>
+                  <span class="font-bold text-purple-400 font-mono">&lt; 5 min (Antes 169 min)</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="bg-purple-500 h-full" style="width: 95%;"></div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Checklist Normativo -->
-        <div class="pt-2">
-          <h3 class="font-semibold text-xs text-slate-300 uppercase tracking-wider mb-2">Marcos Legales Vigentes Verificados</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-800">
-              <span class="font-bold text-blue-400">SARLAFT (Superintendencia Financiera)</span>
-              <p class="text-slate-300 mt-1">Detección de operaciones inusuales con razones objetivas y reporte ROS reservado ante la UIAF.</p>
-            </div>
-            <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-800">
-              <span class="font-bold text-blue-400">Ley 1581 de 2012 & Ley 1266 de 2008</span>
-              <p class="text-slate-300 mt-1">Habeas data y datos personales. Cifrado en reposo y en tránsito. Sin fuga de reserva bancaria.</p>
-            </div>
-            <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-800">
-              <span class="font-bold text-blue-400">Circular Externa 007 de 2018 (SFC)</span>
-              <p class="text-slate-300 mt-1">Gestión integral del riesgo de ciberseguridad, monitoreo en tiempo real e interoperabilidad con SOC.</p>
-            </div>
-            <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-800">
-              <span class="font-bold text-blue-400">PCI DSS v4.0.1</span>
-              <p class="text-slate-300 mt-1">El motor opera sin almacenar tarjetas (PAN) y mantiene segmentación perimetral estricta.</p>
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <span>🛡️</span> Principio Rector de Supervisión Humana
+            </h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Escudo Yuma opera bajo el mandato estricto de que <strong>ningún bloqueo definitivo</strong> de cuentas o transacciones es ejecutado por el sistema de forma 100% autónoma.
+            </p>
+            <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700/70 text-xs space-y-1.5">
+              <div class="flex items-center gap-2 text-emerald-400 font-bold">
+                <span>✓</span> Clasificación y Priorización Automática en Tiempo Real
+              </div>
+              <div class="flex items-center gap-2 text-amber-400 font-bold">
+                <span>✓</span> Retención Preventiva Temporal con SLA de 5 Minutos
+              </div>
+              <div class="flex items-center gap-2 text-blue-400 font-bold">
+                <span>✓</span> Autorización Exclusiva por Analista Humano Certificado (SOC)
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
+      <!-- ===================================================================== -->
+      <!-- SECCIÓN B: SIMULADOR DE TRANSACCIONES (SANDBOX PRE-AUTORIZACIÓN) -->
+      <!-- ===================================================================== -->
+      <section id="tab-sandbox" class="space-y-6">
+        
+        <!-- Banner de Principio Rector -->
+        <div class="p-4 rounded-xl bg-gradient-to-r from-blue-950/40 via-indigo-950/30 to-slate-900 border border-blue-800/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="text-2xl mt-0.5">💡</div>
+            <div>
+              <h3 class="font-semibold text-blue-300 text-sm">Principio Rector de Escudo Yuma</h3>
+              <p class="text-xs text-slate-300 mt-0.5">
+                Califica en menos de <strong>300 ms antes de autorizar</strong> la transacción.
+                Prioriza y explica para el analista; <strong>ningún bloqueo definitivo</strong> es ejecutado por el sistema de forma automática.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="ejecutarPruebaCarga()" id="btn-stress-test" class="px-3.5 py-2 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-2 transition">
+              <span>🚀</span> Test de Carga (150 tx/seg)
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- Columna Izquierda: Generador y Parámetros -->
+          <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="font-semibold text-white text-base flex items-center gap-2">
+                <span>💳</span> Inyección de Transacción
+              </h2>
+              <span class="text-xs text-slate-400">Sandbox API REST</span>
+            </div>
+
+            <!-- Selector de Escenarios del Reto -->
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Cargar Caso de Estudio Frecuente:</label>
+              <select id="scenario-selector" onchange="cargarEscenario(this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                <option value="ato">1. Toma de Cuenta (Phishing / ATO) [Cambio clave + Disp. nuevo]</option>
+                <option value="sim">2. SIM Swapping [Cambio SIM 48h + Madrugada]</option>
+                <option value="mule">3. Red de Cuenta Mula [Fan-in crítico &gt; 5 orígenes]</option>
+                <option value="social">4. Ingeniería Social [Desvío extremo sin cambio de aparato]</option>
+                <option value="qr">5. Engaño con QR / Comercio Nuevo [Monto redondo]</option>
+                <option value="legit">6. Transacción Habitual Legítima [Bajo riesgo]</option>
+              </select>
+            </div>
+
+            <form id="tx-form" onsubmit="event.preventDefault(); calificarTransaccion();" class="space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[11px] text-slate-400">ID Transacción</label>
+                  <input type="text" id="tx_id" value="TX-202611-9874" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                </div>
+                <div>
+                  <label class="text-[11px] text-slate-400">Monto (COP)</label>
+                  <input type="number" id="tx_monto" value="950000" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[11px] text-slate-400">Cuenta Origen</label>
+                  <input type="text" id="tx_origen" value="CTA-88310" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white">
+                </div>
+                <div>
+                  <label class="text-[11px] text-slate-400">Cuenta Destino</label>
+                  <input type="text" id="tx_destino" value="CTA-99231" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[11px] text-slate-400">Tipo Operación</label>
+                  <select id="tx_tipo" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                    <option value="TRANSFERENCIA_INMEDIATA">Transferencia Inmediata</option>
+                    <option value="PAGO_QR">Pago con QR</option>
+                    <option value="RETIRO_CORRESPONSAL">Retiro Corresponsal</option>
+                    <option value="PAGO_SERVICIOS">Pago de Servicios</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[11px] text-slate-400">Canal</label>
+                  <select id="tx_canal" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                    <option value="APP_MOVIL">App Móvil</option>
+                    <option value="CORRESPONSAL">Corresponsal</option>
+                    <option value="CAJERO">Cajero</option>
+                    <option value="WEB">Web</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="border-t border-slate-800 pt-3 space-y-2">
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Señales de Contexto y Comportamiento</span>
+                
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <label class="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg cursor-pointer">
+                    <input type="checkbox" id="tx_disp_nuevo" checked class="rounded border-slate-700 text-blue-600">
+                    <span class="text-slate-300">Dispositivo nuevo</span>
+                  </label>
+                  <label class="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg cursor-pointer">
+                    <input type="checkbox" id="tx_cambio_clave" checked class="rounded border-slate-700 text-blue-600">
+                    <span class="text-slate-300">Cambio clave &lt;24h</span>
+                  </label>
+                  <label class="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg cursor-pointer">
+                    <input type="checkbox" id="tx_cambio_sim" class="rounded border-slate-700 text-blue-600">
+                    <span class="text-slate-300">Cambio SIM &lt;48h</span>
+                  </label>
+                  <label class="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg cursor-pointer">
+                    <input type="checkbox" id="tx_madrugada" class="rounded border-slate-700 text-blue-600">
+                    <span class="text-slate-300">Madrugada (00-05h)</span>
+                  </label>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label class="text-[11px] text-slate-400">Time-to-Cash (min)</label>
+                    <input type="number" id="tx_ttc" value="3.2" step="0.5" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                  </div>
+                  <div>
+                    <label class="text-[11px] text-slate-400">Patrón P95 (90d COP)</label>
+                    <input type="number" id="tx_p95" value="150000" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" id="btn-evaluar" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-sm text-white shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2 mt-4">
+                <span>⚡</span> Calificar Riesgo (Pre-Autorización)
+              </button>
+            </form>
+          </div>
+
+          <!-- Columna Derecha: Resultado del Scoring & Latencia -->
+          <div class="lg:col-span-7 space-y-4">
+            
+            <!-- Veredicto Principal -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden" id="verdict-container">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs uppercase tracking-wider font-semibold text-slate-400">Veredicto del Servicio Antifraude</span>
+                  <div class="flex items-center gap-3 mt-1.5">
+                    <span id="decision-badge" class="px-4 py-1.5 rounded-lg text-lg font-bold uppercase tracking-wide badge-retener">
+                      RETENER
+                    </span>
+                    <div class="text-sm">
+                      <span class="text-slate-400">Tramo de Riesgo:</span>
+                      <span id="tramo-text" class="font-bold text-orange-400 ml-1">ALTO (Score: 720/1000)</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs text-slate-400">SLA Pre-Autorización</span>
+                  <div class="text-xl font-bold font-mono text-emerald-400 flex items-center justify-end gap-1" id="total-latency-text">
+                    <span>46.8 ms</span>
+                    <span class="text-xs text-slate-400 font-normal">/ 300 ms</span>
+                  </div>
+                  <span class="text-[10px] text-emerald-400 font-medium">✓ Cumple SLA Estricto</span>
+                </div>
+              </div>
+
+              <!-- Barra de Riesgo Visual -->
+              <div class="mt-4">
+                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                  <span>0 (Aprobar)</span>
+                  <span>350 (Desafiar)</span>
+                  <span>550 (Retener)</span>
+                  <span>750 (Rechazar)</span>
+                  <span>1000</span>
+                </div>
+                <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex relative">
+                  <div class="h-full bg-emerald-500/30 w-[35%]"></div>
+                  <div class="h-full bg-amber-500/30 w-[20%]"></div>
+                  <div class="h-full bg-orange-500/30 w-[20%]"></div>
+                  <div class="h-full bg-red-500/30 w-[25%]"></div>
+                  <!-- Indicador de aguja -->
+                  <div id="risk-needle" class="absolute top-0 bottom-0 w-1 bg-white shadow-lg transition-all duration-500" style="left: 72%;"></div>
+                </div>
+              </div>
+
+              <!-- Mensaje al Cliente -->
+              <div class="mt-4 p-3 rounded-lg bg-slate-800/70 border border-slate-700/60 text-xs">
+                <span class="text-slate-400 font-medium">Mensaje para el Cliente (Sin fricción injustificada / Foco confianza):</span>
+                <p id="client-message" class="text-slate-200 mt-1 font-medium">
+                  "Su operación se encuentra en proceso de validación preventiva por seguridad. Será atendida en breve sin costo adicional."
+                </p>
+              </div>
+            </div>
+
+            <!-- Desglose por Capas & TreeSHAP -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <!-- Capas de Decisión -->
+              <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+                <h3 class="font-semibold text-xs text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>🧱</span> Aporte por Capa
+                </h3>
+                
+                <div class="space-y-2 text-xs">
+                  <div>
+                    <div class="flex justify-between text-slate-300 mb-1">
+                      <span>1. Reglas Dinámicas Versionadas</span>
+                      <span id="score-rules-text" class="font-bold text-blue-400 font-mono">680</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div id="bar-rules" class="bg-blue-500 h-full progress-bar" style="width: 68%;"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-slate-300 mb-1">
+                      <span>2. Modelo ML (XGBoost Inferencia)</span>
+                      <span id="score-ml-text" class="font-bold text-purple-400 font-mono">750</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div id="bar-ml" class="bg-purple-500 h-full progress-bar" style="width: 75%;"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-slate-300 mb-1">
+                      <span>3. Señales de Grafo & Red</span>
+                      <span id="score-graph-text" class="font-bold text-amber-400 font-mono">710</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div id="bar-graph" class="bg-amber-500 h-full progress-bar" style="width: 71%;"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Códigos de Razón -->
+                <div class="pt-2 border-t border-slate-800">
+                  <span class="text-[11px] font-semibold text-slate-400">Códigos de Razón Oficiales:</span>
+                  <div id="reason-codes-badges" class="flex flex-wrap gap-1.5 mt-1.5">
+                    <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-mono">RAZ-DEV-01</span>
+                    <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-mono">RAZ-VEL-01</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Explicabilidad TreeSHAP -->
+              <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+                <h3 class="font-semibold text-xs text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>🔍</span> Explicabilidad (Top Variables SHAP)
+                </h3>
+                <p class="text-[11px] text-slate-400">Atribución aditiva local al score final para auditoría y analista.</p>
+                
+                <div id="shap-bars-container" class="space-y-2 text-xs">
+                  <!-- Se llena dinámicamente -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Presupuesto de Latencia (Waterfall) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <h3 class="font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>⏱️</span> Presupuesto de Latencia por Etapa (Meta P99: 245 ms)
+                </h3>
+                <span class="text-slate-400 font-mono text-[11px]">Ruta caliente con lookup materializado</span>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs mt-2">
+                <div class="bg-slate-800/60 p-2 rounded border border-slate-700/50">
+                  <div class="text-[10px] text-slate-400">1. Contexto Caché</div>
+                  <div class="font-mono text-white font-bold" id="lat-cache">12.5 ms</div>
+                </div>
+                <div class="bg-slate-800/60 p-2 rounded border border-slate-700/50">
+                  <div class="text-[10px] text-slate-400">2. Reglas Dinámicas</div>
+                  <div class="font-mono text-white font-bold" id="lat-rules">11.4 ms</div>
+                </div>
+                <div class="bg-slate-800/60 p-2 rounded border border-slate-700/50">
+                  <div class="text-[10px] text-slate-400">3. ML Inferencia</div>
+                  <div class="font-mono text-white font-bold" id="lat-ml">16.8 ms</div>
+                </div>
+                <div class="bg-slate-800/60 p-2 rounded border border-slate-700/50">
+                  <div class="text-[10px] text-slate-400">4. Grafo Lookup</div>
+                  <div class="font-mono text-white font-bold" id="lat-graph">14.1 ms</div>
+                </div>
+                <div class="bg-slate-800/60 p-2 rounded border border-slate-700/50">
+                  <div class="text-[10px] text-slate-400">5. SHAP Explicación</div>
+                  <div class="font-mono text-white font-bold" id="lat-shap">14.3 ms</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SECCIÓN C: CONSOLA DEL ANALISTA SOC (COLA PRIORIZADA) -->
+      <!-- ===================================================================== -->
+      <section id="tab-soc" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="font-bold text-lg text-white">Cola Priorizada de Casos (SOC Fraude)</h2>
+            <p class="text-xs text-slate-400">Ordenada estrictamente por Score de Riesgo y Monto en Juego. SLA de atención &lt; 5 minutos.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Capacidad: 12 analistas activos</span>
+            <button onclick="recargarCasos()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300">
+              🔄 Actualizar Cola
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Lista de Casos en Cola -->
+          <div class="lg:col-span-5 space-y-3" id="cases-list-container">
+            <!-- Se llena dinámicamente -->
+          </div>
+
+          <!-- Detalle del Caso Seleccionado & Grafo Interactivo -->
+          <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4" id="case-detail-pane">
+            <div class="flex items-start justify-between border-b border-slate-800 pb-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono font-bold text-base text-white" id="detail-case-id">CASO-202611-101</span>
+                  <span id="detail-badge" class="px-2.5 py-0.5 rounded text-xs font-bold badge-retener">RETENER</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5" id="detail-modalidad">Toma de Cuenta (ATO) vía Phishing</p>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-slate-400 uppercase">Monto Retenido</span>
+                <div class="font-mono font-bold text-emerald-400 text-lg" id="detail-monto">COP $950.000</div>
+              </div>
+            </div>
+
+            <!-- Línea de Tiempo de Sesión -->
+            <div class="space-y-1.5">
+              <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Cronología de Eventos (Timeline de Sospecha):</span>
+              <div class="bg-slate-800/40 p-3 rounded-lg border border-slate-800 text-xs space-y-2" id="detail-timeline">
+                <div class="flex items-center gap-2 text-slate-300">
+                  <span class="text-blue-400 font-mono">10:10:12</span> 
+                  <span>Inicio de sesión desde dispositivo nuevo no enrolado (Android 14, IP fuera de rango)</span>
+                </div>
+                <div class="flex items-center gap-2 text-amber-300">
+                  <span class="text-amber-400 font-mono">10:12:05</span> 
+                  <span>Cambio de contraseña y solicitud de nuevo token de seguridad</span>
+                </div>
+                <div class="flex items-center gap-2 text-red-300">
+                  <span class="text-red-400 font-mono">10:14:20</span> 
+                  <span>Intento de transferencia inmediata por $950.000 (98% del saldo) hacia cuenta receptora nueva</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Visualizador de Red / Grafo de Mulas -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Grafo de Red Transaccional & Detección de Mulas:</span>
+                <span class="text-[10px] text-amber-400">Fan-In crítico detectado en cuenta destino</span>
+              </div>
+              
+              <div class="w-full h-44 bg-slate-950 rounded-lg border border-slate-800 relative flex items-center justify-center overflow-hidden" id="graph-canvas-container">
+                <!-- SVG interactivo de Grafo -->
+                <svg class="w-full h-full" id="mule-svg" viewBox="0 0 500 200">
+                  <!-- Aristas -->
+                  <line x1="80" y1="100" x2="250" y2="100" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4" />
+                  <line x1="160" y1="40" x2="250" y2="100" stroke="#ef4444" stroke-width="2" />
+                  <line x1="160" y1="160" x2="250" y2="100" stroke="#ef4444" stroke-width="2" />
+                  <line x1="250" y1="100" x2="420" y2="100" stroke="#8b5cf6" stroke-width="3" />
+
+                  <!-- Nodos -->
+                  <!-- Cuenta Origen Víctima -->
+                  <circle cx="80" cy="100" r="18" fill="#1e293b" stroke="#3b82f6" stroke-width="2" />
+                  <text x="80" y="104" text-anchor="middle" fill="#93c5fd" font-size="9" font-family="monospace">Víctima</text>
+                  <text x="80" y="130" text-anchor="middle" fill="#94a3b8" font-size="8">CTA-88310</text>
+
+                  <!-- Otras cuentas alimentando (Fan-in) -->
+                  <circle cx="160" cy="40" r="14" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5" />
+                  <text x="160" y="44" text-anchor="middle" fill="#fcd34d" font-size="8">Otr-1</text>
+
+                  <circle cx="160" cy="160" r="14" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5" />
+                  <text x="160" y="164" text-anchor="middle" fill="#fcd34d" font-size="8">Otr-2</text>
+
+                  <!-- Cuenta Mula Receptora -->
+                  <circle cx="250" cy="100" r="22" fill="#450a0a" stroke="#ef4444" stroke-width="3" />
+                  <text x="250" y="104" text-anchor="middle" fill="#fca5a5" font-weight="bold" font-size="9">MULA</text>
+                  <text x="250" y="135" text-anchor="middle" fill="#f87171" font-size="9" font-family="monospace">CTA-99231</text>
+                  <text x="250" y="145" text-anchor="middle" fill="#fca5a5" font-size="7">Fan-in: 8 | Antig: 2d</text>
+
+                  <!-- Dispersión a Efectivo / Corresponsal -->
+                  <circle cx="420" cy="100" r="20" fill="#2e1065" stroke="#a855f7" stroke-width="2" />
+                  <text x="420" y="104" text-anchor="middle" fill="#d8b4fe" font-size="9">CASH-OUT</text>
+                  <text x="420" y="130" text-anchor="middle" fill="#c084fc" font-size="8">Corresponsal</text>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Acciones Humanas del Analista (Principio Rector: Bloqueo solo humano) -->
+            <div class="border-t border-slate-800 pt-3">
+              <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">Decisión del Analista (Bucle de Aprendizaje Activo):</span>
+              
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="resolverCasoActual('DESCARTAR_FALSO_POSITIVO')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition">
+                  ✓ Descartar (Falso Positivo)
+                </button>
+                <button onclick="resolverCasoActual('SOLICITAR_VERIFICACION')" class="px-3 py-2 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-600/40 text-xs font-medium transition">
+                  📱 Desafiar (2FA/OTP)
+                </button>
+                <button onclick="resolverCasoActual('CONFIRMAR_FRAUDE')" class="px-3 py-2 rounded-lg bg-orange-600/30 hover:bg-orange-600/50 text-orange-200 border border-orange-500/40 text-xs font-medium transition">
+                  🚨 Confirmar Fraude
+                </button>
+                <button onclick="resolverCasoActual('BLOQUEO_DEFINITIVO')" class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold text-xs transition shadow-lg shadow-red-600/30">
+                  ⛔ Bloqueo Definitivo
+                </button>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-2 text-center">
+                Al confirmar o descartar, el motor actualiza en caliente los pesos de reglas y el dataset de reentrenamiento.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SECCIÓN D: MOTOR DE 3 CAPAS & CATÁLOGO DE REGLAS -->
+      <!-- ===================================================================== -->
+      <section id="tab-engine" class="space-y-6 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+          <div>
+            <h2 class="font-bold text-lg text-white">Arquitectura del Motor en 3 Capas</h2>
+            <p class="text-xs text-slate-400">
+              Sustitución de las 140 reglas estáticas por un pipeline sinérgico: Reglas Dinámicas Versionadas + Modelo XGBoost + Red y Grafo.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-bold text-blue-400 text-sm">Capa 1: Reglas Dinámicas</span>
+                <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono text-[10px]">Versionable</span>
+              </div>
+              <p class="text-slate-300">Conocimiento experto y cumplimiento regulatorio. Genera vetos duros y códigos de razón auditables.</p>
+              <div class="mt-3 text-slate-400">12 reglas activas (RD-001 a RD-012) editables en caliente sin reiniciar servicios.</div>
+            </div>
+
+            <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-bold text-purple-400 text-sm">Capa 2: Modelo ML (XGBoost)</span>
+                <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px]">ROC AUC: 0.94</span>
+              </div>
+              <p class="text-slate-300">Captura interacciones no lineales entre señales débiles. Produce score continuo (0-1000) y TreeSHAP local.</p>
+              <div class="mt-3 text-slate-400">Inferencia en lote de 1 en &lt; 25 ms. Campeón actual contra histórico etiquetado.</div>
+            </div>
+
+            <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-bold text-amber-400 text-sm">Capa 3: Señales Grafo & Red</span>
+                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]">Lookup &lt; 2 ms</span>
+              </div>
+              <p class="text-slate-300">Monitoreo de redes de cuentas mula, fan-in anómalo, caminos de dispersión rápida y comunidades.</p>
+              <div class="mt-3 text-slate-400">Grafo completo materializado en memoria (120.972 txs, 90 mulas confirmadas).</div>
+            </div>
+          </div>
+
+          <!-- Catálogo de Reglas en Caliente -->
+          <div class="pt-4 border-t border-slate-800">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-sm text-white">Catálogo de Reglas Dinámicas Activas (Edición en Caliente)</h3>
+              <span class="text-xs text-slate-400">Ajuste de pesos sin despliegue de código</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-800 text-slate-400">
+                    <th class="py-2 px-3">Código</th>
+                    <th class="py-2 px-3">Nombre de Regla</th>
+                    <th class="py-2 px-3">Código Razón</th>
+                    <th class="py-2 px-3">Precisión Histórica</th>
+                    <th class="py-2 px-3">Peso</th>
+                    <th class="py-2 px-3">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="rules-table-body" class="divide-y divide-slate-800/60">
+                  <!-- Se llena dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SECCIÓN E: BUCLE CERRADO DE RETROALIMENTACIÓN -->
+      <!-- ===================================================================== -->
+      <section id="tab-feedback" class="space-y-6 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+          <div>
+            <h2 class="font-bold text-lg text-white">Bucle Cerrado de Retroalimentación Continua</h2>
+            <p class="text-xs text-slate-400">
+              El motor anterior perdía el conocimiento porque la decisión del analista moría en su hoja de cálculo. En Escudo Yuma, cada confirmación o descarte alimenta de inmediato la calibración de reglas y el dataset retador.
+            </p>
+          </div>
+
+          <!-- Comparativo de Por qué bajó el ruido -->
+          <div class="bg-slate-800/40 border border-slate-800 p-4 rounded-xl space-y-3">
+            <h3 class="font-semibold text-xs text-slate-300 uppercase tracking-wider">Aritmética del Descarte de Reglas Ruidosas</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Las 4 reglas más ineficientes del motor anterior (<strong>R012 Retiro monto alto, R010 Acumulado diario, R011 Pago QR monto alto y R001 Transferencia monto alto</strong>) generaban <strong>8.292 de las 9.687 alertas (85.6%)</strong> con una precisión marginal de apenas <strong>6.7%</strong>. Escudo Yuma las convirtió en variables de contexto para el modelo XGBoost y dejó de alertar en solitario.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div class="bg-red-950/20 border border-red-800/30 p-3 rounded-lg text-xs space-y-1">
+                <span class="font-bold text-red-400">Motor Anterior (140 Reglas Estáticas)</span>
+                <div class="flex justify-between text-slate-300"><span>Alertas diarias:</span> <span class="font-bold">4.000</span></div>
+                <div class="flex justify-between text-slate-300"><span>Falsos Positivos:</span> <span class="font-bold text-red-400">89.0%</span></div>
+                <div class="flex justify-between text-slate-300"><span>Alertas revisadas:</span> <span class="font-bold">33.7% (6.426 olvidadas)</span></div>
+                <div class="flex justify-between text-slate-300"><span>Mediana a revisión:</span> <span class="font-bold">169 minutos</span></div>
+              </div>
+
+              <div class="bg-emerald-950/20 border border-emerald-800/30 p-3 rounded-lg text-xs space-y-1">
+                <span class="font-bold text-emerald-400">Escudo Yuma (Motor 3 Capas)</span>
+                <div class="flex justify-between text-slate-300"><span>Alertas diarias:</span> <span class="font-bold text-emerald-400">~884</span></div>
+                <div class="flex justify-between text-slate-300"><span>Falsos Positivos:</span> <span class="font-bold text-emerald-400">54.2% (&lt; 60% meta)</span></div>
+                <div class="flex justify-between text-slate-300"><span>Alertas revisadas:</span> <span class="font-bold text-emerald-400">100% de alto riesgo</span></div>
+                <div class="flex justify-between text-slate-300"><span>Mediana a revisión:</span> <span class="font-bold text-emerald-400">&lt; 5 minutos</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between p-4 bg-blue-950/20 border border-blue-800/30 rounded-xl">
+            <div>
+              <h4 class="font-semibold text-xs text-blue-300">Ciclo Campeón / Retador (MLOps)</h4>
+              <p class="text-xs text-slate-400">El modelo retador evalúa en sombra el flujo continuo. Promoción controlada mensual.</p>
+            </div>
+            <button onclick="simularReentrenamiento()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold text-xs text-white transition">
+              🚀 Disparar Reentrenamiento Automático
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SECCIÓN F: NO DISCRIMINACIÓN, SARLAFT & CUMPLIMIENTO -->
+      <!-- ===================================================================== -->
+      <section id="tab-compliance" class="space-y-6 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+          <div>
+            <h2 class="font-bold text-lg text-white">Auditoría de No Discriminación & Cumplimiento Normativo</h2>
+            <p class="text-xs text-slate-400">
+              Cumplimiento estricto de las directrices de la Superintendencia Financiera, SARLAFT, Ley 1581 de 2012 y Ley 1266 de 2008.
+            </p>
+          </div>
+
+          <!-- Módulo Fairlearn -->
+          <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/80 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold text-sm text-white flex items-center gap-2">
+                <span>⚖️</span> Auditoría Fairlearn & Análisis de Fuga de Proxy
+              </h3>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold">
+                ✓ Auditoría Mensual APROBADA
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                <span class="text-slate-400">Paridad Demográfica (Diff):</span>
+                <div class="font-bold text-white text-base mt-0.5 font-mono">0.032</div>
+                <span class="text-[10px] text-emerald-400">Dentro del límite legal (&lt; 0.05)</span>
+              </div>
+              <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                <span class="text-slate-400">Impacto Dispar (Ratio):</span>
+                <div class="font-bold text-white text-base mt-0.5 font-mono">0.94</div>
+                <span class="text-[10px] text-emerald-400">Rango seguro (0.80 - 1.25)</span>
+              </div>
+              <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                <span class="text-slate-400">Odds Igualados (Diff):</span>
+                <div class="font-bold text-white text-base mt-0.5 font-mono">0.028</div>
+                <span class="text-[10px] text-emerald-400">Sin sesgo por subgrupo (&lt; 0.05)</span>
+              </div>
+            </div>
+
+            <!-- Variables Prohibidas -->
+            <div class="pt-2 text-xs">
+              <span class="text-slate-400 font-semibold block mb-1">Variables Prohibidas Excluidas de Forma Explícita:</span>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌ Edad del usuario</span>
+                <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌ Género / Sexo</span>
+                <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌ Región / Departamento</span>
+                <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌ Estrato socioeconómico</span>
+                <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌ Nivel de ingresos declarado</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Checklist Normativo -->
+          <div class="pt-2">
+            <h3 class="font-semibold text-xs text-slate-300 uppercase tracking-wider mb-2">Marcos Legales Vigentes Verificados</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-800">
+                <span class="font-bold text-blue-400">SARLAFT (Superintendencia Financiera)</span>
+                <p class="text-slate-300 mt-1">Detección de operaciones inusuales con razones objetivas y reporte ROS reservado ante la UIAF.</p>
+              </div>
+              <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-800">
+                <span class="font-bold text-blue-400">Ley 1581 de 2012 & Ley 1266 de 2008</span>
+                <p class="text-slate-300 mt-1">Habeas data y datos personales. Cifrado en reposo y en tránsito. Sin fuga de reserva bancaria.</p>
+              </div>
+              <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-800">
+                <span class="font-bold text-blue-400">Circular Externa 007 de 2018 (SFC)</span>
+                <p class="text-slate-300 mt-1">Gestión integral del riesgo de ciberseguridad, monitoreo en tiempo real e interoperabilidad con SOC.</p>
+              </div>
+              <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-800">
+                <span class="font-bold text-blue-400">PCI DSS v4.0.1</span>
+                <p class="text-slate-300 mt-1">El motor opera sin almacenar tarjetas (PAN) y mantiene segmentación perimetral estricta.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL DE COMPROBANTE DIGITAL BANCARIO -->
+  <!-- ========================================================================= -->
+  <div id="modal-comprobante" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4 animate-in fade-in zoom-in duration-200">
+      <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl font-bold">
+        ✓
       </div>
-    </section>
+      <div>
+        <h3 class="text-base font-extrabold text-slate-800" id="receipt-title">Comprobante de Transacción</h3>
+        <p class="text-xs text-slate-500" id="receipt-type">Transferencia Inmediata Exitosa</p>
+      </div>
 
-  </main>
+      <div class="bg-slate-50 p-4 rounded-xl text-left text-xs space-y-2 border border-slate-100">
+        <div class="flex justify-between">
+          <span class="text-slate-500">Monto:</span>
+          <span class="font-bold text-slate-900 font-mono text-sm" id="receipt-amount">$120.000 COP</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Referencia:</span>
+          <span class="font-mono font-bold text-blue-700" id="receipt-ref">TX-8921</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Contraparte:</span>
+          <span class="font-semibold text-slate-800" id="receipt-recipient">Mateo Gómez</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Fecha y Hora:</span>
+          <span class="text-slate-700 font-mono" id="receipt-date">19 Nov 2026, 14:30:12</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Estado:</span>
+          <span class="text-emerald-700 font-bold" id="receipt-status">Autorizada por Escudo Yuma</span>
+        </div>
+      </div>
 
-  <!-- Footer -->
-  <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
-    Escudo Yuma • Solución Antifraude de Próxima Generación para Yuma Pay S.A. • Hackatón EstudIA Ciberseguridad 2026
+      <div class="text-[11px] text-slate-400">
+        Yuma Pay S.A. SEDPE • Vigilada SFC • Acreditación en Red Transfiya
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="cerrarComprobante()" class="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">
+          Cerrar
+        </button>
+        <button onclick="window.print()" class="flex-1 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm">
+          Imprimir / Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Universal -->
+  <footer class="bg-slate-900 border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>
+        <strong>Yuma Pay S.A.</strong> • Sociedad Especializada en Depósitos y Pagos Electrónicos (SEDPE)
+      </div>
+      <div>
+        Vigilada por la Superintendencia Financiera de Colombia • Escudo Yuma Antifraude 2026
+      </div>
+    </div>
   </footer>
 
-  <!-- LÓGICA JAVASCRIPT DEL CLIENTE -->
+  <!-- ========================================================================= -->
+  <!-- LÓGICA JAVASCRIPT DEL CLIENTE (USUARIO + ADMINISTRADOR COMPLETO) -->
+  <!-- ========================================================================= -->
   <script>
     const API_BASE = window.location.origin.includes('http') ? window.location.origin : 'http://localhost:8080';
+    let currentRole = 'user'; // 'user' o 'admin'
     let currentCases = [];
     let currentSelectedCase = null;
     let allRules = [];
+    let userBalance = 3840500;
+    let isBalanceVisible = true;
+    let isCardDataVisible = false;
 
-    // Escenarios pre-cargados
+    // Escenarios pre-cargados para Escudo Yuma (CONSERVADOS INTACTOS)
     const escenarios = {
       ato: {
         tx_id: "TX-ATO-001",
@@ -823,17 +1962,317 @@
       }
     };
 
+    // =========================================================================
+    // 1. CONMUTADOR DE ROLES (PERFIL USUARIO vs PERFIL ADMINISTRADOR)
+    // =========================================================================
+    function switchRole(role) {
+      currentRole = role;
+      const viewUser = document.getElementById('view-user');
+      const viewAdmin = document.getElementById('view-admin');
+      const btnUser = document.getElementById('role-btn-user');
+      const btnAdmin = document.getElementById('role-btn-admin');
+      const mobileSelect = document.getElementById('mobile-role-select');
+      const headerName = document.getElementById('header-user-name');
+      const headerStatus = document.getElementById('header-user-status');
+      const headerInitials = document.getElementById('header-avatar-initials');
+
+      if (mobileSelect) mobileSelect.value = role;
+
+      if (role === 'user') {
+        viewUser.classList.remove('hidden');
+        viewAdmin.classList.add('hidden');
+        document.body.classList.remove('dark-mode-admin');
+        document.body.className = "min-h-screen flex flex-col bg-slate-50 text-slate-800 antialiased";
+        
+        btnUser.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 bg-blue-600 text-white shadow-sm";
+        btnAdmin.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-2";
+
+        headerName.textContent = "Juan Camilo R.";
+        headerStatus.textContent = "Cliente Verificado • Fogafín";
+        headerStatus.className = "text-[10px] text-emerald-400";
+        headerInitials.textContent = "JC";
+      } else {
+        viewUser.classList.add('hidden');
+        viewAdmin.classList.remove('hidden');
+        document.body.classList.add('dark-mode-admin');
+        document.body.className = "min-h-screen flex flex-col bg-slate-950 text-slate-100 antialiased";
+
+        btnAdmin.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 bg-blue-600 text-white shadow-sm";
+        btnUser.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-2";
+
+        headerName.textContent = "John Mazo (CISO)";
+        headerStatus.textContent = "Analista SOC L3 • SARLAFT";
+        headerStatus.className = "text-[10px] text-blue-400";
+        headerInitials.textContent = "JM";
+
+        // Cargar datos administrativos si aún no están listos
+        recargarCasos();
+        cargarReglasCatalogo();
+      }
+    }
+
+    // =========================================================================
+    // 2. NAVEGACIÓN Y FUNCIONES DEL PERFIL DE USUARIO (YUMA PAY)
+    // =========================================================================
+    function switchUserTab(tab) {
+      const tabs = ['home', 'transfer', 'qr', 'recharge', 'bills', 'card', 'history', 'security'];
+      tabs.forEach(t => {
+        const view = document.getElementById(`user-view-${t}`);
+        const btn = document.getElementById(`user-tab-btn-${t}`);
+        if (view && btn) {
+          if (t === tab) {
+            view.classList.remove('hidden');
+            btn.className = "px-3.5 py-2 rounded-lg text-blue-700 bg-blue-50 font-bold flex items-center gap-1.5 whitespace-nowrap transition";
+          } else {
+            view.classList.add('hidden');
+            btn.className = "px-3.5 py-2 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-slate-100 flex items-center gap-1.5 whitespace-nowrap transition";
+          }
+        }
+      });
+    }
+
+    function toggleBalanceVisibility() {
+      isBalanceVisible = !isBalanceVisible;
+      const display = document.getElementById('user-balance-display');
+      const icon = document.getElementById('balance-eye-icon');
+      if (isBalanceVisible) {
+        display.textContent = `$ ${userBalance.toLocaleString()}`;
+        icon.textContent = '👁️';
+      } else {
+        display.textContent = '$ ••••••••';
+        icon.textContent = '🙈';
+      }
+    }
+
+    function setTransferKeyType(type) {
+      ['celular', 'documento', 'correo', 'cuenta'].forEach(k => {
+        const btn = document.getElementById(`key-type-${k}`);
+        if (btn) {
+          if (k === type.toLowerCase()) {
+            btn.className = "p-2.5 rounded-xl border border-blue-600 bg-blue-50 text-blue-700 font-bold text-center transition";
+          } else {
+            btn.className = "p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 font-medium text-center transition";
+          }
+        }
+      });
+
+      const lbl = document.getElementById('lbl-dest-key');
+      const inp = document.getElementById('usr-tx-dest');
+      if (type === 'CELULAR') {
+        lbl.textContent = 'Número de Celular (Transfiya):';
+        inp.placeholder = 'Ej. 310 456 7890';
+      } else if (type === 'DOCUMENTO') {
+        lbl.textContent = 'Número de Cédula de Ciudadanía:';
+        inp.placeholder = 'Ej. 1020849201';
+      } else if (type === 'CORREO') {
+        lbl.textContent = 'Correo Electrónico Registrado:';
+        inp.placeholder = 'Ej. usuario@correo.com';
+      } else {
+        lbl.textContent = 'Número de Cuenta Yuma Pay:';
+        inp.placeholder = 'Ej. CTA-88310';
+      }
+    }
+
+    function seleccionarContactoRapido(dest, nombre) {
+      document.getElementById('usr-tx-dest').value = dest;
+      document.getElementById('usr-tx-memo').value = `Envío para ${nombre}`;
+    }
+
+    function setAmountQuick(amt) {
+      document.getElementById('usr-tx-amount').value = amt;
+    }
+
+    // Transferencia iniciada desde el perfil de usuario:
+    // Conecta con el motor de Escudo Yuma en segundo plano
+    async function iniciarTransferenciaUsuario() {
+      const dest = document.getElementById('usr-tx-dest').value;
+      const amt = parseFloat(document.getElementById('usr-tx-amount').value) || 0;
+      const memo = document.getElementById('usr-tx-memo').value || 'Transferencia Inmediata';
+
+      if (amt > userBalance) {
+        alert('❌ Saldo insuficiente en tu cuenta Yuma Pay para realizar esta operación.');
+        return;
+      }
+
+      // Evaluar la transacción a través de la API de Escudo Yuma
+      const txPayload = {
+        transaccion_id: `TX-USR-${Date.now().toString().slice(-4)}`,
+        cuenta_origen: "CTA-88310",
+        cuenta_destino: dest.includes('MULA') ? dest : `CTA-${dest.slice(-5)}`,
+        monto: amt,
+        tipo_operacion: "TRANSFERENCIA_INMEDIATA",
+        canal: "APP_MOVIL",
+        dispositivo_nuevo: false,
+        cambio_clave_24h: false,
+        cambio_sim_48h: false,
+        time_to_cash_minutos: 60,
+        monto_p95_90d: 150000,
+        saldo_actual: userBalance,
+        es_madrugada: false
+      };
+
+      try {
+        let decision = "APROBAR";
+        let mensaje = "Transacción autorizada de inmediato.";
+
+        try {
+          const resp = await fetch(`${API_BASE}/api/v1/score`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(txPayload)
+          });
+          const scoreData = await resp.json();
+          decision = scoreData.decision;
+          mensaje = scoreData.mensaje_cliente;
+        } catch (e) {
+          const localEval = evaluarLocalmente(txPayload);
+          decision = localEval.decision;
+          mensaje = localEval.mensaje_cliente;
+        }
+
+        if (decision === "RECHAZAR") {
+          alert(`🚫 Operación denegada por seguridad preventiva:\n${mensaje}`);
+          return;
+        }
+
+        if (decision === "RETENER") {
+          alert(`⚠️ Notificación de Seguridad Preventiva:\n${mensaje}\nUn analista revisará la operación en menos de 5 minutos.`);
+          return;
+        }
+
+        if (decision === "DESAFIAR") {
+          const otp = prompt("🔐 Desafío de Seguridad Yuma:\nPor favor ingresa tu código de verificación enviado por SMS (Ingresa 1234 para aprobar):");
+          if (otp !== "1234") {
+            alert("Código de verificación incorrecto. La operación fue cancelada.");
+            return;
+          }
+        }
+
+        // Operación Aprobada
+        userBalance -= amt;
+        document.getElementById('user-balance-display').textContent = `$ ${userBalance.toLocaleString()}`;
+
+        // Mostrar comprobante digital
+        verComprobante(txPayload.transaccion_id, 'Transferencia Saliente (Transfiya)', dest, `- $${amt.toLocaleString()}`, new Date().toLocaleString(), 'Aprobada');
+        
+      } catch (err) {
+        alert("Error al procesar la transacción: " + err.message);
+      }
+    }
+
+    function switchQrSubTab(sub) {
+      if (sub === 'scan') {
+        document.getElementById('qr-pane-scan').classList.remove('hidden');
+        document.getElementById('qr-pane-generate').classList.add('hidden');
+        document.getElementById('qr-tab-btn-scan').className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-blue-700 font-bold";
+        document.getElementById('qr-tab-btn-generate').className = "px-3 py-1.5 rounded-lg text-slate-600";
+      } else {
+        document.getElementById('qr-pane-scan').classList.add('hidden');
+        document.getElementById('qr-pane-generate').classList.remove('hidden');
+        document.getElementById('qr-tab-btn-generate').className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-blue-700 font-bold";
+        document.getElementById('qr-tab-btn-scan').className = "px-3 py-1.5 rounded-lg text-slate-600";
+      }
+    }
+
+    function simularPagoQr(comercio, monto) {
+      if (confirm(`¿Deseas autorizar el pago por QR de $${monto.toLocaleString()} COP a ${comercio}?`)) {
+        if (monto > userBalance) {
+          alert("Saldo insuficiente.");
+          return;
+        }
+        userBalance -= monto;
+        document.getElementById('user-balance-display').textContent = `$ ${userBalance.toLocaleString()}`;
+        verComprobante(`TX-QR-${Date.now().toString().slice(-4)}`, 'Pago con Código QR', comercio, `- $${monto.toLocaleString()}`, new Date().toLocaleString(), 'Aprobada');
+      }
+    }
+
+    function simularRecargaPSE() {
+      const banco = document.getElementById('recharge-bank').value;
+      const amt = parseFloat(document.getElementById('recharge-amount').value) || 0;
+      if (amt < 10000) {
+        alert("El monto mínimo de recarga es $10.000 COP.");
+        return;
+      }
+      userBalance += amt;
+      document.getElementById('user-balance-display').textContent = `$ ${userBalance.toLocaleString()}`;
+      verComprobante(`PSE-${Date.now().toString().slice(-4)}`, `Acreditación PSE (${banco})`, 'Yuma Pay S.A.', `+ $${amt.toLocaleString()}`, new Date().toLocaleString(), 'Acreditada');
+    }
+
+    function seleccionarConvenioServicio(empresa, monto) {
+      document.getElementById('bill-company').value = empresa;
+      document.getElementById('bill-amount').value = monto;
+    }
+
+    function simularPagoFactura() {
+      const empresa = document.getElementById('bill-company').value;
+      const amt = parseFloat(document.getElementById('bill-amount').value) || 0;
+      const ref = document.getElementById('bill-ref').value;
+      if (amt > userBalance) {
+        alert("Saldo insuficiente.");
+        return;
+      }
+      userBalance -= amt;
+      document.getElementById('user-balance-display').textContent = `$ ${userBalance.toLocaleString()}`;
+      verComprobante(`FAC-${Date.now().toString().slice(-4)}`, 'Pago de Servicios Públicos', `${empresa} (Ref: ${ref})`, `- $${amt.toLocaleString()}`, new Date().toLocaleString(), 'Pagada');
+    }
+
+    function toggleCardData() {
+      isCardDataVisible = !isCardDataVisible;
+      const pan = document.getElementById('card-pan-display');
+      const cvv = document.getElementById('card-cvv-display');
+      const btn = document.getElementById('btn-toggle-card-data');
+      if (isCardDataVisible) {
+        pan.textContent = "4512 8890 2341 5510";
+        cvv.textContent = "482";
+        btn.innerHTML = '<span>🙈</span> Ocultar Datos Sensibles';
+      } else {
+        pan.textContent = "•••• •••• •••• 5510";
+        cvv.textContent = "•••";
+        btn.innerHTML = '<span>👁️</span> Mostrar Datos Sensibles (CVV Dinámico)';
+      }
+    }
+
+    function toggleCardFreeze(isFrozen) {
+      if (isFrozen) {
+        alert("🔒 Tarjeta Débito Virtual bloqueada temporalmente. No se autorizarán compras hasta que la reactives.");
+      } else {
+        alert("🔓 Tarjeta Débito Virtual activa y disponible para pagos.");
+      }
+    }
+
+    function abrirModalRetiroCorresponsal() {
+      const pin = Math.floor(100000 + Math.random() * 900000);
+      alert(`🏪 Retiro en Corresponsal Bancario:\n\n1. Acércate a cualquier punto Efecty, Baloto o SuperGIROS.\n2. Indica el código de convenio Yuma Pay: 110944.\n3. Tu PIN de retiro temporal (válido por 30 minutos) es: ${pin}.\n4. Presenta tu cédula de ciudadanía original.`);
+    }
+
+    function verComprobante(ref, tipo, contraparte, monto, fecha, estado) {
+      document.getElementById('receipt-ref').textContent = ref;
+      document.getElementById('receipt-type').textContent = tipo;
+      document.getElementById('receipt-recipient').textContent = contraparte;
+      document.getElementById('receipt-amount').textContent = `${monto} COP`;
+      document.getElementById('receipt-date').textContent = fecha;
+      document.getElementById('receipt-status').textContent = estado;
+      document.getElementById('modal-comprobante').classList.remove('hidden');
+    }
+
+    function cerrarComprobante() {
+      document.getElementById('modal-comprobante').classList.add('hidden');
+    }
+
+    // =========================================================================
+    // 3. FUNCIONES ADMINISTRATIVAS DE ESCUDO YUMA (CONSERVADAS AL 100%)
+    // =========================================================================
     function switchTab(tabId) {
-      ['sandbox', 'soc', 'engine', 'feedback', 'compliance'].forEach(t => {
+      ['overview', 'sandbox', 'soc', 'engine', 'feedback', 'compliance'].forEach(t => {
         const section = document.getElementById(`tab-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
         if (section && btn) {
           if (t === tabId) {
             section.classList.remove('hidden');
-            btn.className = "px-4 py-2 text-blue-400 border-b-2 border-blue-500 flex items-center gap-2";
+            btn.className = "px-3.5 py-2 text-blue-400 border-b-2 border-blue-500 font-bold flex items-center gap-1.5 whitespace-nowrap transition";
           } else {
             section.classList.add('hidden');
-            btn.className = "px-4 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-2";
+            btn.className = "px-3.5 py-2 text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap transition";
           }
         }
       });
@@ -887,7 +2326,6 @@
         renderResultadoScoring(data);
       } catch (e) {
         console.warn("Fallo fetch a servidor, usando evaluador cliente embebido", e);
-        // Fallback evaluador local embebido
         const local = evaluarLocalmente(payload);
         renderResultadoScoring(local);
       }
@@ -969,7 +2407,7 @@
       });
     }
 
-    // Evaluador local embebido para garantizar funcionamiento 100% autónomo
+    // Evaluador local embebido para funcionamiento autónomo
     function evaluarLocalmente(tx) {
       let scoreReglas = 0;
       let scoreML = 120;
@@ -1118,11 +2556,15 @@
 
     function renderCasosList() {
       const container = document.getElementById('cases-list-container');
+      if (!container) return;
       container.innerHTML = '';
       const pendientes = currentCases.filter(c => c.estado === 'PENDIENTE');
-      document.getElementById('queue-badge-count').textContent = pendientes.length;
+      const badgeCount = document.getElementById('queue-badge-count');
+      const badgeTop = document.getElementById('queue-badge-count-top');
+      if (badgeCount) badgeCount.textContent = pendientes.length;
+      if (badgeTop) badgeTop.textContent = pendientes.length;
 
-      currentCases.forEach((c, idx) => {
+      currentCases.forEach((c) => {
         const isPending = c.estado === 'PENDIENTE';
         const card = document.createElement('div');
         card.className = `p-3.5 rounded-xl border cursor-pointer transition ${isPending ? 'bg-slate-900 border-slate-800 hover:border-blue-500/50' : 'bg-slate-900/40 border-slate-800/40 opacity-60'}`;
@@ -1151,11 +2593,17 @@
 
     function seleccionarCaso(c) {
       currentSelectedCase = c;
-      document.getElementById('detail-case-id').textContent = c.caso_id;
-      document.getElementById('detail-badge').textContent = c.decision_motor;
-      document.getElementById('detail-badge').className = `px-2.5 py-0.5 rounded text-xs font-bold badge-${c.decision_motor.toLowerCase()}`;
-      document.getElementById('detail-modalidad').textContent = c.modalidad_sospechosa;
-      document.getElementById('detail-monto').textContent = `COP $${c.monto.toLocaleString()}`;
+      const elId = document.getElementById('detail-case-id');
+      const elBadge = document.getElementById('detail-badge');
+      const elMod = document.getElementById('detail-modalidad');
+      const elMto = document.getElementById('detail-monto');
+      if (elId) elId.textContent = c.caso_id;
+      if (elBadge) {
+        elBadge.textContent = c.decision_motor;
+        elBadge.className = `px-2.5 py-0.5 rounded text-xs font-bold badge-${c.decision_motor.toLowerCase()}`;
+      }
+      if (elMod) elMod.textContent = c.modalidad_sospechosa;
+      if (elMto) elMto.textContent = `COP $${c.monto.toLocaleString()}`;
     }
 
     async function resolverCasoActual(decision) {
@@ -1177,7 +2625,6 @@
       currentSelectedCase.estado = decision;
       renderCasosList();
 
-      // Alerta visual de retroalimentación
       alert(`✅ Caso ${currentSelectedCase.caso_id} cerrado con resolución: ${decision}.\nSe retroalimentó el bucle de reglas y modelo.`);
     }
 
@@ -1203,6 +2650,7 @@
 
     function renderReglasTable() {
       const tbody = document.getElementById('rules-table-body');
+      if (!tbody) return;
       tbody.innerHTML = '';
       allRules.forEach(r => {
         tbody.innerHTML += `
@@ -1229,7 +2677,7 @@
       const latencias = [];
       for (let i = 0; i < 30; i++) {
         const t0 = performance.now();
-        await new Promise(r => setTimeout(r, 6)); // ~150 req/sec pacing
+        await new Promise(r => setTimeout(r, 6));
         latencias.push(performance.now() - t0 + Math.random() * 8 + 35);
       }
 
@@ -1251,6 +2699,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       cargarEscenario('ato');
       cargarReglasCatalogo();
+      recargarCasos();
     });
   </script>
 </body>
