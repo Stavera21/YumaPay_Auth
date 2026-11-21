@@ -1,0 +1,85 @@
+{
+  "total_cuentas": 6000,
+  "mulas_confirmadas_count": 90,
+  "mulas_destacadas": [
+    "CTA-MULA-007", "CTA-MULA-014", "CTA-MULA-029", "CTA-MULA-042", "CTA-MULA-061",
+    "CTA-MULA-075", "CTA-MULA-088", "CTA-MULA-090", "CTA-449102", "CTA-99231"
+  ],
+  "nodos": [
+    {
+      "id": "CTA-MULA-007",
+      "tipo": "CUENTA_MULA",
+      "fanin_24h": 14,
+      "fanout_24h": 2,
+      "antiguedad_dias": 4,
+      "centralidad_pagerank": 0.084,
+      "ruta_dispersion": true,
+      "monto_acumulado_entrante": 12800000,
+      "monto_dispersado_efectivo": 12450000,
+      "estado": "CONFIRMADO_FRAUDE",
+      "etiqueta": "Mula Cluster Norte"
+    },
+    {
+      "id": "CTA-99231",
+      "tipo": "CUENTA_MULA",
+      "fanin_24h": 8,
+      "fanout_24h": 1,
+      "antiguedad_dias": 2,
+      "centralidad_pagerank": 0.052,
+      "ruta_dispersion": true,
+      "monto_acumulado_entrante": 7400000,
+      "monto_dispersado_efectivo": 7100000,
+      "estado": "CONFIRMADO_FRAUDE",
+      "etiqueta": "Mula Phishing ATO"
+    },
+    {
+      "id": "CTA-77812",
+      "tipo": "RECEPTOR_SOSPECHOSO",
+      "fanin_24h": 6,
+      "fanout_24h": 1,
+      "antiguedad_dias": 5,
+      "centralidad_pagerank": 0.041,
+      "ruta_dispersion": true,
+      "monto_acumulado_entrante": 5100000,
+      "monto_dispersado_efectivo": 4900000,
+      "estado": "EN_INVESTIGACION",
+      "etiqueta": "Receptor SIM Swap"
+    },
+    {
+      "id": "CTA-98102",
+      "tipo": "RECEPTOR_NUEVO",
+      "fanin_24h": 3,
+      "fanout_24h": 0,
+      "antiguedad_dias": 1,
+      "centralidad_pagerank": 0.019,
+      "ruta_dispersion": false,
+      "monto_acumulado_entrante": 3600000,
+      "monto_dispersado_efectivo": 0,
+      "estado": "EN_INVESTIGACION",
+      "etiqueta": "Falso Funcionario / Social Eng"
+    },
+    {
+      "id": "CTA-44200",
+      "tipo": "CLIENTE_HABITUAL",
+      "fanin_24h": 1,
+      "fanout_24h": 1,
+      "antiguedad_dias": 420,
+      "centralidad_pagerank": 0.002,
+      "ruta_dispersion": false,
+      "monto_acumulado_entrante": 45000,
+      "monto_dispersado_efectivo": 0,
+      "estado": "LEGITIMO",
+      "etiqueta": "Amigo Familiar Legítimo"
+    }
+  ],
+  "aristas_recientes": [
+    { "origen": "CTA-88310", "destino": "CTA-99231", "monto": 950000, "hora": "10:14", "alerta": true },
+    { "origen": "CTA-44120", "destino": "CTA-77812", "monto": 1450000, "hora": "02:35", "alerta": true },
+    { "origen": "CTA-12005", "destino": "CTA-MULA-007", "monto": 780000, "hora": "11:20", "alerta": true },
+    { "origen": "CTA-12006", "destino": "CTA-MULA-007", "monto": 920000, "hora": "11:22", "alerta": true },
+    { "origen": "CTA-12007", "destino": "CTA-MULA-007", "monto": 1150000, "hora": "11:25", "alerta": true },
+    { "origen": "CTA-12008", "destino": "CTA-MULA-007", "monto": 840000, "hora": "11:29", "alerta": true },
+    { "origen": "CTA-55910", "destino": "CTA-98102", "monto": 1800000, "hora": "14:50", "alerta": true },
+    { "origen": "CTA-33100", "destino": "CTA-44200", "monto": 45000, "hora": "15:10", "alerta": false }
+  ]
+}
