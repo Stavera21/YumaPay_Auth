@@ -1,0 +1,13 @@
+{
+  "name": "escudo-yuma",
+  "version": "1.0.0",
+  "description": "Sistema antifraude en tiempo real para Yuma Pay S.A. (SEDPE) - Hackatón EstudIA 2026",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test:sandbox": "python mock_api.py"
+  },
+  "keywords": ["antifraude", "fintech", "tiempo-real", "xgboost", "grafos", "sedpe"],
+  "author": "Equipo Escudo Yuma",
+  "license": "MIT"
+}
